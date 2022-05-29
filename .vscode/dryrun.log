@@ -1,0 +1,27 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/teyber/Workspace/ft_ssl'
+make -s -C libft SYS_ENDIAN=1
+make[1]: Entering directory '/home/teyber/Workspace/ft_ssl/libft'
+gcc -Wall -Wextra -Werror -I. -g -DBUFFER_SIZE=4096 -DSYS_ENDIAN -c get_option.c -o get_option.o
+gcc -Wall -Wextra -Werror -I. -g -DBUFFER_SIZE=4096 -DSYS_ENDIAN -c parse_args.c -o parse_args.o
+gcc -Wall -Wextra -Werror -I. -g -DBUFFER_SIZE=4096 -DSYS_ENDIAN -c print_flags.c -o print_flags.o
+gcc -Wall -Wextra -Werror -I. -g -DBUFFER_SIZE=4096 -DSYS_ENDIAN -c random.c -o random.o
+gcc -Wall -Wextra -Werror -I. -g -DBUFFER_SIZE=4096 -DSYS_ENDIAN -c endian.c -o endian.o
+ar rcs libft.a ./ft_memset.o ./ft_bzero.o ./ft_memcpy.o ./ft_memccpy.o ./ft_memmove.o ./ft_memchr.o ./ft_memcmp.o ./ft_strlen.o ./ft_isalpha.o ./ft_isdigit.o ./ft_isalnum.o ./ft_isascii.o ./ft_isprint.o ./ft_toupper.o ./ft_tolower.o ./ft_strchr.o ./ft_strrchr.o ./ft_strcmp.o ./ft_strncmp.o ./ft_strlcpy.o ./ft_strlcat.o ./ft_strnstr.o ./ft_atoi.o ./ft_calloc.o ./ft_strdup.o ./ft_substr.o ./ft_strjoin.o ./ft_strjoin_arr.o ./ft_strtrim.o ./ft_split.o ./ft_itoa.o ./ft_strmapi.o ./ft_putchar_fd.o ./ft_putstr_fd.o ./ft_putendl_fd.o ./ft_putnbr_fd.o ./ft_lstnew_bonus.o ./ft_lstadd_front_bonus.o ./ft_lstsize_bonus.o ./ft_lstlast_bonus.o ./ft_lstfirst_bonus.o ./ft_lstadd_back_bonus.o ./ft_lstdelone_bonus.o ./ft_lstclear_bonus.o ./ft_lstiter_bonus.o ./ft_lstmap_bonus.o ./ft_btree_apply_suffix.o ./ft_btree_apply_infix.o ./ft_btree_apply_prefix.o ./ft_btree_create_node.o ./ft_ternary.o ./ft_assign.o  ./get_next_line.o ./get_next_line_utils.o ./get_option.o ./parse_args.o ./print_flags.o ./random.o ./endian.o 
+make[1]: Leaving directory '/home/teyber/Workspace/ft_ssl/libft'
+make: Leaving directory '/home/teyber/Workspace/ft_ssl'
+ 
+make: *** No rule to make target 'objs/endian.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/init_options.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/throw.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/ft_trace.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/options/get_option.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/options/parse_args.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/options/print_flags.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/utils/string.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/core/setup.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/core/ft_cksum.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/core/trace.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/core/create_packet.o', needed by 'ft_traceroute'.
+make: *** No rule to make target 'objs/core/time.o', needed by 'ft_traceroute'.
+
