@@ -1,7 +1,7 @@
 #include <stdio.h>
+#include "ft_ssl.h"
 
-int main(void)
+int main(int ac, char **av)
 {
-	printf("Hello, World!\n");
-	return 0;
+	return ft_exec(ac, av);
 }

@@ -21,6 +21,9 @@ CFLAGS				:=	-Wall -Werror -Wextra -g3 -ggdb -fdiagnostics-color=always
 LDFLAGS				:=	-L$(PATH_LIBFT) -lft
 
 BASENAME			:=	main.c							\
+						commands.c						\
+						throw.c							\
+						help/help.c						\
 
 SRCS				:=	$(addprefix $(PATH_SRCS)/, $(BASENAME))
 OBJS				:=	$(addprefix $(PATH_OBJS)/, $(BASENAME:%.c=%.o))
