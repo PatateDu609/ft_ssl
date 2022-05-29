@@ -1,4 +1,4 @@
-NAME				=	ft_traceroute
+NAME				=	ft_ssl
 AUTHOR				:=	gboucett
 
 PATH_INC			:=	-I./include -Ilibft
