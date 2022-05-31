@@ -17,13 +17,16 @@ LIBFT_FLAGS			:=	SYS_ENDIAN=${SYS_ENDIAN}
 PATH_LIBFT			:=	libft
 LIBFT				:=	$(LIBFT_PATH)/libft.a
 
-CFLAGS				:=	-Wall -Werror -Wextra -g3 -ggdb -fdiagnostics-color=always
+CFLAGS				:=	-Wall -Werror -Wextra -g3 -ggdb -gdwarf-2 -fdiagnostics-color=always
 LDFLAGS				:=	-L$(PATH_LIBFT) -lft
 
 BASENAME			:=	main.c							\
-						commands.c						\
 						throw.c							\
-						help/help.c						\
+						help/cmd.c						\
+						commands/commands.c				\
+						commands/options.c				\
+						commands/setup_env.c			\
+						utils/usage.c					\
 
 SRCS				:=	$(addprefix $(PATH_SRCS)/, $(BASENAME))
 OBJS				:=	$(addprefix $(PATH_OBJS)/, $(BASENAME:%.c=%.o))
@@ -167,7 +170,7 @@ $(NAME):			$(OBJS) libft
 libft:				$(LIBFT)
 
 $(LIBFT):
-					$(MAKE) -s -C $(PATH_LIBFT) $(LIBFT_FLAGS)
+					@$(MAKE) -s -C $(PATH_LIBFT) $(LIBFT_FLAGS)
 
 clean:
 					$(RM) -r $(PATH_OBJS)
