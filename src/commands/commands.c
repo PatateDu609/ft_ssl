@@ -156,7 +156,7 @@ void init_cmd(void)
 	ret |= register_cmd("help", STANDARD, ft_help);
 	register_param("help", "command", PARAM_TYPE_COMMAND, 0, 0, NULL, "Display help for command");
 
-	ret |= register_cmd("md5", DIGEST, NULL);
+	ret |= register_cmd("md5", DIGEST, ft_md5);
 	register_param("md5", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
 	ret |= register_cmd("sha256", DIGEST, NULL);

@@ -4,6 +4,6 @@
 #include "defines.h"
 #include "structs.h"
 
-int ft_usage(char *name, const struct s_command *cmd);
+int ft_usage(int err, char *name, const struct s_command *cmd);
 
 #endif

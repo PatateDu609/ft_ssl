@@ -26,10 +26,10 @@ static void ft_print(enum e_command_type type)
 int ft_help(__unused struct s_env *env)
 {
 	if (env->opts & HELP_FLAG_HELP)
-		return ft_usage("help", env->cmd);
+		return ft_usage(0, "help", env->cmd);
 
 	if (env->ac == 2)
-		return ft_usage(env->params[0], NULL);
+		return ft_usage(0, env->params[0], NULL);
 
 	if (env->ac > 2)
 	{

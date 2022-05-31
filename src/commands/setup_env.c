@@ -43,6 +43,8 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 		else if (i + 1 >= ac && ft_strncmp(OPT_PREFIX, av[i], ft_strlen(OPT_PREFIX)))
 			*params = i;
 	}
+	if (ac == 1)
+		*params = 1;
 	return (active_options);
 }
 

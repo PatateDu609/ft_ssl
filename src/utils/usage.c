@@ -106,7 +106,7 @@ void ft_usage_line(const struct s_command *cmd, char *name)
 	}
 }
 
-int ft_usage(char *name, const struct s_command *cmd)
+int ft_usage(int err, char *name, const struct s_command *cmd)
 {
 	if (!cmd)
 		cmd = get_cmd(name);
@@ -152,5 +152,5 @@ int ft_usage(char *name, const struct s_command *cmd)
 	setvbuf(stderr, NULL, _IONBF, 0); // No buffering
 
 	get_longest(cmd); // Reset
-	return 0;
+	return err;
 }
