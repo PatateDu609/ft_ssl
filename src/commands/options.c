@@ -16,15 +16,16 @@ size_t get_opt_cnt(struct s_option **options)
 
 static void add_option(char *cmd_name, struct s_option *opt)
 {
-	struct s_option **options = get_options(cmd_name);
+	struct s_option ***options = get_options(cmd_name);
 
 	if (!options)
 		throwe("Command not found");
-	int opt_cnt = get_opt_cnt(options);
-	*options = realloc(*options, sizeof(struct s_option *) * (opt_cnt + 1));
+	int opt_cnt = get_opt_cnt(*options);
+	*options = realloc(*options, sizeof(struct s_option *) * (opt_cnt + 2));
 	if (!*options)
 		throwe("Failed to allocate memory for options");
-	options[opt_cnt] = opt;
+	(*options)[opt_cnt] = opt;
+	(*options)[opt_cnt + 1] = NULL;
 }
 
 static struct s_option *register_option(char *cmd_name, char *name, enum e_opt_type type, uint64_t flag)

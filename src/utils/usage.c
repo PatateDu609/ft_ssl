@@ -65,10 +65,18 @@ static void print_parameters(const struct s_command *cmd)
 	{
 		if (!printed)
 			fprintf(stderr, "\n");
-		fprintf(stderr, "%-*s %s",
+		char opt[512];
+		if (cmd->params[i].is_required)
+			opt[0] = 0;
+		else if (cmd->params[i].def)
+			snprintf(opt, 512, "(optional; default is %s)", cmd->params[i].def);
+		else
+			snprintf(opt, 512, "(optional)");
+		fprintf(stderr, "%-*s %s%s",
 				longest + 1,
 				cmd->params[i].name,
-				cmd->params[i].description);
+				cmd->params[i].description,
+				opt);
 		printed = 1;
 	}
 	if (printed)
@@ -80,6 +88,23 @@ static void print_parameters(const struct s_command *cmd)
 		__fpurge(stderr); // Print nothing if no options found
 }
 
+void ft_usage_line(const struct s_command *cmd, char *name)
+{
+	if (cmd->options && cmd->options[0])
+		fprintf(stderr, "Usage: %s [options]", name);
+	if (cmd->params)
+	{
+		for (size_t i = 0; i < cmd->param_cnt; i++)
+		{
+			char *mul = cmd->params[i].can_be_multiple ? "..." : "";
+			if (cmd->params[i].is_required)
+				fprintf(stderr, " %s", cmd->params[i].name);
+			else
+				fprintf(stderr, " [%s%s]", cmd->params[i].name, mul);
+		}
+	}
+}
+
 int ft_usage(char *name, const struct s_command *cmd)
 {
 	if (!cmd)
@@ -89,11 +114,7 @@ int ft_usage(char *name, const struct s_command *cmd)
 		fprintf(stderr, "ft_ssl: '%s' is an invalid command.\n", name);
 		return 1;
 	}
-
-	if (cmd->options && cmd->options[0])
-		fprintf(stderr, "Usage: %s [option...]", name);
-	if (cmd->params)
-		fprintf(stderr, " [params]");
+	ft_usage_line(cmd, name);
 	get_longest(cmd);
 
 	fprintf(stderr, "\n\n");

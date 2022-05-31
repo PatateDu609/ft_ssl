@@ -5,10 +5,11 @@
 static uint64_t get_active_options(int ac, char **av, int *params)
 {
 	char *cmd_name = av[0];
-	struct s_option **options = get_options(cmd_name);
-	if (!options)
+	struct s_option ***opt = get_options(cmd_name);
+	if (!opt)
 		throwe("Command not found");
 
+	struct s_option **options = *opt;
 	size_t opt_cnt = get_opt_cnt(options);
 	uint64_t active_options = 0;
 

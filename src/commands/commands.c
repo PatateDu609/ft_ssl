@@ -58,7 +58,10 @@ static struct s_command *get_cmd_no_const(const char *name)
 	return NULL;
 }
 
-static void register_param(char *cmd, char *name, enum e_param_type type, uint8_t mul, char *desc)
+static void register_param(char *cmd, char *name,
+						   enum e_param_type type,
+						   uint8_t mul, uint8_t is_required,
+						   char *def, char *desc)
 {
 	struct s_command *cmd_data = get_cmd_no_const(cmd);
 	if (!cmd_data)
@@ -69,9 +72,11 @@ static void register_param(char *cmd, char *name, enum e_param_type type, uint8_
 	param.name = name;
 	param.type = type;
 	param.can_be_multiple = mul;
+	param.is_required = is_required;
+	param.def = def;
 	param.description = desc;
 
-	size_t size = sizeof(struct s_param *) * (cmd_data->param_cnt + 1);
+	size_t size = sizeof(struct s_param) * (cmd_data->param_cnt + 1);
 	cmd_data->params = realloc(cmd_data->params, size);
 	if (!cmd_data->params)
 		throwe("Failed to allocate memory for params");
@@ -132,14 +137,14 @@ size_t get_longest_name(void)
 	return data.longest_name;
 }
 
-struct s_option **get_options(const char *name)
+struct s_option ***get_options(const char *name)
 {
 	size_t i;
 
 	for (i = 0; i < data.cnt; i++)
 	{
 		if (!ft_strcmp(data.cmds[i].name, name))
-			return data.cmds[i].options;
+			return &data.cmds[i].options;
 	}
 	return (OPT_NOT_FOUND);
 }
@@ -149,7 +154,7 @@ void init_cmd(void)
 	uint8_t ret = 0;
 
 	ret |= register_cmd("help", STANDARD, ft_help);
-	register_param("help", "command", PARAM_TYPE_COMMAND, 0, "Display help for command");
+	register_param("help", "command", PARAM_TYPE_COMMAND, 0, 0, NULL, "Display help for command");
 
 	if (!ret)
 		throwe("Failed to register commands");

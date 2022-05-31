@@ -35,7 +35,9 @@ enum e_param_type
 struct s_param
 {
 	char *name;				 // name of the parameter
+	char *def;				 // default value
 	uint8_t can_be_multiple; // can be repeated
+	uint8_t is_required;	 // is required
 	enum e_param_type type;	 // type of the parameter
 	char *description;		 // description of the parameter
 };
