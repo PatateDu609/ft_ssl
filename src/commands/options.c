@@ -58,4 +58,26 @@ void init_options(void)
 {
 	struct s_option *opt = register_option("help", "help", OPT_TYPE_GENERAL, HELP_FLAG_HELP);
 	set_desc(opt, "Print this summary");
+
+	opt = register_option("md5", "help", OPT_TYPE_GENERAL, MD5_FLAG_HELP);
+	set_desc(opt, "Print this summary");
+	opt = register_option("md5", "p", OPT_TYPE_GENERAL, MD5_FLAG_p);
+	set_desc(opt, "Echo STDIN to STDOUT and append the checksum to STDOUT");
+	opt = register_option("md5", "q", OPT_TYPE_GENERAL, MD5_FLAG_q);
+	set_desc(opt, "Quiet mode, only print the checksum");
+	opt = register_option("md5", "r", OPT_TYPE_GENERAL, MD5_FLAG_r);
+	set_desc(opt, "Reverse the format of the output");
+	opt = register_option("md5", "s", OPT_TYPE_GENERAL, MD5_FLAG_s);
+	set_desc(opt, "Print the sum of the given string");
+
+	opt = register_option("sha256", "help", OPT_TYPE_GENERAL, SHA256_FLAG_HELP);
+	set_desc(opt, "Print this summary");
+	opt = register_option("sha256", "p", OPT_TYPE_GENERAL, SHA256_FLAG_p);
+	set_desc(opt, "Echo STDIN to STDOUT and append the checksum to STDOUT");
+	opt = register_option("sha256", "q", OPT_TYPE_GENERAL, SHA256_FLAG_q);
+	set_desc(opt, "Quiet mode, only print the checksum");
+	opt = register_option("sha256", "r", OPT_TYPE_GENERAL, SHA256_FLAG_r);
+	set_desc(opt, "Reverse the format of the output");
+	opt = register_option("sha256", "s", OPT_TYPE_GENERAL, SHA256_FLAG_s);
+	set_desc(opt, "Print the sum of the given string");
 }

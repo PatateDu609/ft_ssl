@@ -40,8 +40,8 @@ static void ft_print(struct s_option **options, enum e_opt_type type)
 			continue;
 		if (!printed)
 			fprintf(stderr, "\n");
-		fprintf(stderr, "-%-*s %s",
-				longest, // takes care of - (longest is common for all opt/params)
+		fprintf(stderr, "-%-*s %s\n",
+				longest + 1, // takes care of - (longest is common for all opt/params)
 				options[i]->name,
 				options[i]->desc);
 		printed = 1;
@@ -69,11 +69,11 @@ static void print_parameters(const struct s_command *cmd)
 		if (cmd->params[i].is_required)
 			opt[0] = 0;
 		else if (cmd->params[i].def)
-			snprintf(opt, 512, "(optional; default is %s)", cmd->params[i].def);
+			snprintf(opt, 512, " (optional; default is %s)", cmd->params[i].def);
 		else
-			snprintf(opt, 512, "(optional)");
+			snprintf(opt, 512, " (optional)");
 		fprintf(stderr, "%-*s %s%s",
-				longest + 1,
+				longest + 2,
 				cmd->params[i].name,
 				cmd->params[i].description,
 				opt);
@@ -90,8 +90,9 @@ static void print_parameters(const struct s_command *cmd)
 
 void ft_usage_line(const struct s_command *cmd, char *name)
 {
+	fprintf(stderr, "Usage: %s", name);
 	if (cmd->options && cmd->options[0])
-		fprintf(stderr, "Usage: %s [options]", name);
+		fprintf(stderr, "[options]");
 	if (cmd->params)
 	{
 		for (size_t i = 0; i < cmd->param_cnt; i++)

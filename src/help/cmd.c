@@ -13,7 +13,7 @@ static void ft_print(enum e_command_type type)
 
 	names = get_cmd_names(type);
 	if (!*names)
-		fprintf(stderr, "No commands found\n\n");
+		fprintf(stderr, "No commands found\n");
 	for (int i = 0; names[i]; i++)
 	{
 		for (int j = 0; j < CMD_PER_LINE && names[i]; j++, i++)
@@ -44,10 +44,10 @@ int ft_help(__unused struct s_env *env)
 	fprintf(stderr, "%sStandard commands%s\n", color, clear);
 	ft_print(STANDARD);
 
-	fprintf(stderr, "%sDigest commands%s\n", color, clear);
+	fprintf(stderr, "\n%sDigest commands%s\n", color, clear);
 	ft_print(DIGEST);
 
-	fprintf(stderr, "%sCipher commands%s\n", color, clear);
+	fprintf(stderr, "\n%sCipher commands%s\n", color, clear);
 	ft_print(CIPHER);
 
 	return 0;

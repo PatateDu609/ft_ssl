@@ -156,20 +156,18 @@ void init_cmd(void)
 	ret |= register_cmd("help", STANDARD, ft_help);
 	register_param("help", "command", PARAM_TYPE_COMMAND, 0, 0, NULL, "Display help for command");
 
+	ret |= register_cmd("md5", DIGEST, NULL);
+	register_param("md5", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
+
+	ret |= register_cmd("sha256", DIGEST, NULL);
+	register_param("sha256", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
+
 	if (!ret)
 		throwe("Failed to register commands");
 }
 
 const struct s_command *get_cmd(const char *name)
 {
-	// size_t i;
-
-	// for (i = 0; i < data.cnt; i++)
-	// {
-	// 	if (!ft_strcmp(data.cmds[i].name, name))
-	// 		return data.cmds + i;
-	// }
-	// return NULL;
 	return (get_cmd_no_const(name));
 }
 

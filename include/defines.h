@@ -16,4 +16,16 @@
 // command_flag_opt
 #define HELP_FLAG_HELP 0x1
 
+#define MD5_FLAG_HELP 0x1
+#define MD5_FLAG_p 0x2
+#define MD5_FLAG_q 0x4
+#define MD5_FLAG_r 0x8
+#define MD5_FLAG_s 0x10
+
+#define SHA256_FLAG_HELP 0x1
+#define SHA256_FLAG_p 0x2
+#define SHA256_FLAG_q 0x4
+#define SHA256_FLAG_r 0x8
+#define SHA256_FLAG_s 0x10
+
 #endif
