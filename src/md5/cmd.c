@@ -37,9 +37,18 @@ int ft_md5(struct s_env *e)
 	char *input = read_all(fd);
 	if (input == NULL)
 		return (1);
+	close(fd);
 
-	printf("%s\n", input);
+	struct s_blocks *blks = ft_get_blocks(input, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
 
+	struct s_md5_ctx ctx;
+	md5_init(&ctx);
+	md5_process(blks, &ctx);
+
+	printf("%08x%08x%08x%08x\n", ctx.a, ctx.b, ctx.c, ctx.d);
+
+	free(blks->data);
+	free(blks);
 	free(input);
 	return 0;
 }

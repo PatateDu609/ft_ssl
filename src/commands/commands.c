@@ -115,10 +115,11 @@ int ft_exec(int ac, char **av)
 
 	size_t i;
 	struct s_env env;
-	setup_env(ac, av, &env);
 
 	if (ac < 1)
-		return ft_help(&env);
+		return ft_help(NULL);
+
+	setup_env(ac, av, &env);
 
 	for (i = 0; i < data.cnt; i++)
 	{

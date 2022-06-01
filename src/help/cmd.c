@@ -19,22 +19,27 @@ static void ft_print(enum e_command_type type)
 		for (int j = 0; j < CMD_PER_LINE && names[i]; j++, i++)
 			fprintf(stderr, "%-*s", longest + 1, names[i]);
 		fprintf(stderr, "\n");
+		if (!names[i])
+			break;
 	}
 	free(names);
 }
 
 int ft_help(__unused struct s_env *env)
 {
-	if (env->opts & HELP_FLAG_HELP)
-		return ft_usage(0, "help", env->cmd);
-
-	if (env->ac == 2)
-		return ft_usage(0, env->params[0], NULL);
-
-	if (env->ac > 2)
+	if (env)
 	{
-		fprintf(stderr, "Usage: help\n");
-		return 1;
+		if (env->opts & HELP_FLAG_HELP)
+			return ft_usage(0, "help", env->cmd);
+
+		if (env->ac == 2)
+			return ft_usage(0, env->params[0], NULL);
+
+		if (env->ac > 2)
+		{
+			fprintf(stderr, "Usage: help\n");
+			return 1;
+		}
 	}
 
 	fprintf(stderr, "help:\n\n");

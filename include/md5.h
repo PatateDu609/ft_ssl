@@ -5,4 +5,23 @@
 #include "structs.h"
 #include "usage.h"
 
+#undef F
+#undef G
+#undef H
+#undef I
+
+#undef FF
+#undef GG
+#undef HH
+#undef II
+
+// Auxiliary functions for MD5 defined in RFC 1321
+#define F(B, C, D) ((B & C) | (~B & D))
+#define G(B, C, D) ((B & D) | (C & ~D))
+#define H(B, C, D) (B ^ C ^ D)
+#define I(B, C, D) (C ^ (B | ~D))
+
+void md5_init(struct s_md5_ctx *md5);
+void md5_process(struct s_blocks *blks, struct s_md5_ctx *md5);
+
 #endif

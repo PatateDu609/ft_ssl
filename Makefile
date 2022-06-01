@@ -22,11 +22,16 @@ LDFLAGS				:=	-L$(PATH_LIBFT) -lft
 
 BASENAME			:=	main.c							\
 						throw.c							\
-						help/cmd.c						\
 						commands/commands.c				\
 						commands/options.c				\
 						commands/setup_env.c			\
 						utils/usage.c					\
+						utils/read_all.c				\
+						utils/padding.c					\
+						help/cmd.c						\
+						md5/cmd.c						\
+						md5/init.c						\
+						md5/update.c					\
 
 SRCS				:=	$(addprefix $(PATH_SRCS)/, $(BASENAME))
 OBJS				:=	$(addprefix $(PATH_OBJS)/, $(BASENAME:%.c=%.o))

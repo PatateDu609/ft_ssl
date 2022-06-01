@@ -80,4 +80,18 @@ struct s_env
 	struct s_command *cmd; // command executed
 };
 
+struct s_blocks
+{
+	size_t nb;		   // number of blocks
+	uint8_t *data;	   // data of the blocks
+	size_t block_size; // size of each block in bytes
+};
+
+struct s_md5_ctx
+{
+	uint32_t a, b, c, d; // Current state
+	uint32_t buf[64];	 // Precomputed constants (for speed up, formula: floor(abs(sin(i + 1)) * 2**32))
+	uint32_t s[64];		 // Shift amounts
+};
+
 #endif
