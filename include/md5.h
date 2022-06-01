@@ -21,6 +21,8 @@
 #define H(B, C, D) (B ^ C ^ D)
 #define I(B, C, D) (C ^ (B | ~D))
 
+#define MD5_HASH_SIZE 16 * 2 + 1
+
 void md5_init(struct s_md5_ctx *md5);
 void md5_process(struct s_blocks *blks, struct s_md5_ctx *md5);
 

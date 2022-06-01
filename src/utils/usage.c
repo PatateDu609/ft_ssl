@@ -18,6 +18,8 @@ static int get_longest(const struct s_command *cmd)
 			int len = ft_strlen(cmd->options[i]->name);
 			if (longest < len)
 				longest = len;
+			if (cmd->options[i]->need_value)
+				longest += ft_strlen(cmd->options[i]->val_desc) + 2; // 2 spaces
 		}
 		for (size_t i = 0; i < cmd->param_cnt; i++)
 		{
@@ -40,10 +42,16 @@ static void ft_print(struct s_option **options, enum e_opt_type type)
 			continue;
 		if (!printed)
 			fprintf(stderr, "\n");
-		fprintf(stderr, "-%-*s %s\n",
-				longest + 1, // takes care of - (longest is common for all opt/params)
-				options[i]->name,
-				options[i]->desc);
+
+		if (options[i]->need_value)
+		{
+			int len = longest - ft_strlen(options[i]->name) - 1;
+			fprintf(stderr, "-%s  %-*s", options[i]->name, len, options[i]->val_desc);
+		}
+		else
+			fprintf(stderr, "-%-*s", longest + 1, options[i]->name);
+
+		fprintf(stderr, " %s\n", options[i]->desc);
 		printed = 1;
 	}
 	if (printed)

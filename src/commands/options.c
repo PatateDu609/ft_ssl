@@ -52,6 +52,14 @@ __unused static void set_value(struct s_option *option, fn_chk_opt_arg chk, char
 	option->need_value = 1;
 	option->chk = chk;
 	option->val_desc = val_desc;
+
+	if (!option->val_desc)
+	{
+		char msg[128];
+		snprintf(msg, sizeof(msg), "Value description needed for option %s", option->name);
+		fprintf(stderr, "ft_ssl: %s\n", msg);
+		exit(1);
+	}
 }
 
 void init_options(void)
@@ -69,6 +77,7 @@ void init_options(void)
 	set_desc(opt, "Reverse the format of the output");
 	opt = register_option("md5", "s", OPT_TYPE_GENERAL, MD5_FLAG_s);
 	set_desc(opt, "Print the sum of the given string");
+	set_value(opt, NULL, "string");
 
 	opt = register_option("sha256", "help", OPT_TYPE_GENERAL, SHA256_FLAG_HELP);
 	set_desc(opt, "Print this summary");
@@ -80,4 +89,5 @@ void init_options(void)
 	set_desc(opt, "Reverse the format of the output");
 	opt = register_option("sha256", "s", OPT_TYPE_GENERAL, SHA256_FLAG_s);
 	set_desc(opt, "Print the sum of the given string");
+	set_value(opt, NULL, "string");
 }

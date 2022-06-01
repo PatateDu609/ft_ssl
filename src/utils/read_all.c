@@ -20,5 +20,13 @@ char *read_all(int fd)
 		str = ft_strjoin(str, buf);
 		free(tmp);
 	}
+	if (r == -1)
+	{
+		perror("ft_ssl: read");
+		free(str);
+		return (NULL);
+	}
+	if (str == NULL)
+		str = ft_strdup("");
 	return (str);
 }

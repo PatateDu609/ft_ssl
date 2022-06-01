@@ -25,6 +25,24 @@ static int ft_getfd(char *filename)
 	return (fd);
 }
 
+static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input)
+{
+	char hash[MD5_HASH_SIZE + 1];
+	char *name = e->params[0] ? e->params[0] : "stdin";
+
+	snprintf(hash, MD5_HASH_SIZE, "%08x%08x%08x%08x",
+			 ctx->a, ctx->b, ctx->c, ctx->d);
+
+	if (e->opts & MD5_FLAG_q)
+		printf("%s\n", hash);
+	else if (e->opts & MD5_FLAG_r)
+		printf("%s %s\n", hash, name);
+	else if (e->opts & MD5_FLAG_p)
+		printf("MD5 (%s) = %s\n", input, hash);
+	else
+		printf("MD5 (%s) = %s\n", name, hash);
+}
+
 int ft_md5(struct s_env *e)
 {
 	int fd = ft_getfd(e->params[0]);
@@ -45,7 +63,7 @@ int ft_md5(struct s_env *e)
 	md5_init(&ctx);
 	md5_process(blks, &ctx);
 
-	printf("%08x%08x%08x%08x\n", ctx.a, ctx.b, ctx.c, ctx.d);
+	ft_print_hash(&ctx, e, input);
 
 	free(blks->data);
 	free(blks);

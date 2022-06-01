@@ -25,16 +25,15 @@
 		g = (7 * i) % 16;           \
 	}
 
-static void md5_update(struct s_md5_ctx *md5, const uint8_t *input, size_t len)
+static void md5_update(struct s_md5_ctx *md5, const uint8_t *input)
 {
 	uint32_t *data = (uint32_t *)input; // split input into 32-bit words
-	size_t nb = len / sizeof(uint32_t); // number of 32-bit words
 	uint32_t a;
 	uint32_t b;
 	uint32_t c;
 	uint32_t d;
 
-	for (size_t j = 0; j < nb; j++)
+	for (size_t j = 0; j < 16; j++)
 	{
 		a = md5->a;
 		b = md5->b;
@@ -72,6 +71,6 @@ void md5_process(struct s_blocks *blks, struct s_md5_ctx *md5)
 	for (size_t i = 0; i < blks->nb; i++)
 	{
 		size_t index = i * blks->block_size;
-		md5_update(md5, blks->data + index, blks->block_size);
+		md5_update(md5, blks->data + index);
 	}
 }

@@ -45,6 +45,8 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 	}
 	if (ac == 1)
 		*params = 1;
+	if (!*params)
+		*params = ac;
 	return (active_options);
 }
 
