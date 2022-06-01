@@ -178,9 +178,8 @@ void free_cmd(void)
 		for (size_t j = 0; data.cmds[i].options[j]; j++)
 			free(data.cmds[i].options[j]);
 		free(data.cmds[i].options);
+		free(data.cmds[i].params);
 	}
-
-	free(data.cmds->params);
 	free(data.cmds);
 	data.cmds = NULL;
 	data.cnt = 0;
