@@ -67,6 +67,12 @@ struct s_command
 	size_t param_cnt;		   // number of parameters
 };
 
+union u_input
+{
+	char *str;
+	char **files;
+};
+
 struct s_env
 {
 	int ac;

@@ -28,6 +28,7 @@ BASENAME			:=	main.c							\
 						utils/usage.c					\
 						utils/read_all.c				\
 						utils/padding.c					\
+						utils/input.c					\
 						help/cmd.c						\
 						md5/cmd.c						\
 						md5/init.c						\
@@ -124,7 +125,7 @@ define show_progress =
 	$(eval TMP := $(shell echo "$(TMP)" | sed 's/\..*//'))
 
 	@$(clear_line)
-	@printf "[$(COLOR_PERCENT)%4d %-2s$(CLEAR_COLOR)]%13s $(COLOR_FILE)$(subst objs/,,$@)$(CLEAR_COLOR)\n" $(TMP) % Compiling
+	@printf "[$(COLOR_PERCENT)%4s %-2s$(CLEAR_COLOR)]%13s $(COLOR_FILE)$(subst objs/,,$@)$(CLEAR_COLOR)\n" $(TMP) % Compiling
 	$(call draw_bar,$(TMP))
 endef
 

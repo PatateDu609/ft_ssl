@@ -13,7 +13,7 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 	size_t opt_cnt = get_opt_cnt(options);
 	uint64_t active_options = 0;
 
-	for (int i = 1; i < ac; i++)
+	for (int i = 1; i < ac && !*params; i++)
 	{
 		for (size_t j = 0; j < opt_cnt; j++)
 		{
@@ -24,24 +24,26 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 			{
 				if (options[j]->need_value)
 				{
-					if (i + 1 >= ac || ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
+					if (i + 1 >= ac || !ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
 					{
 						char msg[512];
 						sprintf(msg, "Option %s requires a value", options[j]->name);
 						throwe(msg);
 					}
 					options[j]->value = av[i + 1];
-					i++;
+					i += 2;
 				}
 				active_options |= options[j]->flag;
 				break;
 			}
 		}
 		// If we didn't find the option, then it's a param
-		if (i + 1 < ac && ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
+		if (i >= ac)
+			break;
+		else if (i + 1 < ac && ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
 			*params = i + 1;
 		else if (i + 1 >= ac && ft_strncmp(OPT_PREFIX, av[i], ft_strlen(OPT_PREFIX)))
-			*params = i;
+			*params = i; // TODO: check if it is usefull
 	}
 	if (ac == 1)
 		*params = 1;

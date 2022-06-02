@@ -36,15 +36,19 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input)
 	if (e->opts & MD5_FLAG_q)
 		printf("%s\n", hash);
 	else if (e->opts & MD5_FLAG_r)
-		printf("%s %s\n", hash, name);
+		printf("%s *%s\n", hash, name);
 	else if (e->opts & MD5_FLAG_p)
-		printf("MD5 (%s) = %s\n", input, hash);
+		printf("MD5(%s)= %s\n", input, hash);
 	else
-		printf("MD5 (%s) = %s\n", name, hash);
+		printf("MD5(%s)= %s\n", name, hash);
 }
+
+// static ft_process
 
 int ft_md5(struct s_env *e)
 {
+	struct s_md5_ctx ctx;
+	md5_init(&ctx);
 	int fd = ft_getfd(e->params[0]);
 
 	if (fd == -1)
@@ -59,8 +63,6 @@ int ft_md5(struct s_env *e)
 
 	struct s_blocks *blks = ft_get_blocks(input, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
 
-	struct s_md5_ctx ctx;
-	md5_init(&ctx);
 	md5_process(blks, &ctx);
 
 	ft_print_hash(&ctx, e, input);

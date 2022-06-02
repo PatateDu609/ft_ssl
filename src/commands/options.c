@@ -91,3 +91,19 @@ void init_options(void)
 	set_desc(opt, "Print the sum of the given string");
 	set_value(opt, NULL, "string");
 }
+
+char *get_value(struct s_env *env, uint64_t flag)
+{
+	struct s_option ***opts = get_options(env->cmd->name);
+
+	if (!opts)
+		throwe("Error while getting options");
+	struct s_option **options = *opts;
+
+	for (size_t i = 0; options[i]; i++)
+	{
+		if (options[i]->flag == flag)
+			return options[i]->value;
+	}
+	return NULL;
+}
