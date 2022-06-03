@@ -27,7 +27,7 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 					if (i + 1 >= ac || !ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
 					{
 						char msg[512];
-						sprintf(msg, "Option %s requires a value", options[j]->name);
+						sprintf(msg, "Option -%s requires a value", options[j]->name);
 						throwe(msg);
 					}
 					options[j]->value = av[i + 1];
