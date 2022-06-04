@@ -10,11 +10,6 @@
 #undef H
 #undef I
 
-#undef FF
-#undef GG
-#undef HH
-#undef II
-
 // Auxiliary functions for MD5 defined in RFC 1321
 #define F(B, C, D) (D ^ (B & (C ^ D)))
 #define G(B, C, D) F(D, B, C)

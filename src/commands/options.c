@@ -75,7 +75,7 @@ void init_options(void)
 	set_desc(opt, "Quiet mode, only print the checksum");
 	opt = register_option("md5", "r", OPT_TYPE_GENERAL, MD5_FLAG_r);
 	set_desc(opt, "Reverse the format of the output");
-	opt = register_option("md5", "s", OPT_TYPE_GENERAL, MD5_FLAG_s);
+	opt = register_option("md5", "s", OPT_TYPE_IN, MD5_FLAG_s);
 	set_desc(opt, "Print the sum of the given string");
 	set_value(opt, NULL, "string");
 
@@ -87,7 +87,7 @@ void init_options(void)
 	set_desc(opt, "Quiet mode, only print the checksum");
 	opt = register_option("sha256", "r", OPT_TYPE_GENERAL, SHA256_FLAG_r);
 	set_desc(opt, "Reverse the format of the output");
-	opt = register_option("sha256", "s", OPT_TYPE_GENERAL, SHA256_FLAG_s);
+	opt = register_option("sha256", "s", OPT_TYPE_IN, SHA256_FLAG_s);
 	set_desc(opt, "Print the sum of the given string");
 	set_value(opt, NULL, "string");
 }

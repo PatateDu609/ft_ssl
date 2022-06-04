@@ -160,7 +160,7 @@ void init_cmd(void)
 	ret |= register_cmd("md5", DIGEST, ft_md5);
 	register_param("md5", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha256", DIGEST, NULL);
+	ret |= register_cmd("sha256", DIGEST, ft_sha256);
 	register_param("sha256", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
 	if (!ret)
