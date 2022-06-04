@@ -21,7 +21,7 @@ struct s_blocks *ft_get_blocks(struct s_msg *msg, size_t block_len, __unused siz
 	blocks->block_size = block_len;
 	blocks->nb = msg->len / block_len;
 
-	if (msg->len % block_len)
+	if (msg->len % block_len || msg->len == 0)
 		blocks->nb++;
 	if (msg->len % block_len >= last)
 		blocks->nb++;
