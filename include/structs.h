@@ -97,7 +97,14 @@ struct s_md5_ctx
 {
 	uint32_t a, b, c, d; // Current state
 	uint32_t buf[64];	 // Precomputed constants (for speed up, formula: floor(abs(sin(i + 1)) * 2**32))
-	uint32_t s[64];		 // Shift amounts
+	uint8_t s[64];		 // Shift amounts
+};
+
+struct s_msg
+{
+	uint8_t *data; // data of the message
+	size_t len;	   // length of the message
+	size_t bits;   // number of bits in the message
 };
 
 #endif

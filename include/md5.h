@@ -16,8 +16,8 @@
 #undef II
 
 // Auxiliary functions for MD5 defined in RFC 1321
-#define F(B, C, D) ((B & C) | (~B & D))
-#define G(B, C, D) ((B & D) | (C & ~D))
+#define F(B, C, D) (D ^ (B & (C ^ D)))
+#define G(B, C, D) F(D, B, C)
 #define H(B, C, D) (B ^ C ^ D)
 #define I(B, C, D) (C ^ (B | ~D))
 

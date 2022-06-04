@@ -40,4 +40,12 @@
 #define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTATE_RIGHT(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define LE_64(x) (x)
+#else
+#define LE_64(x) ((x) << 56 | ((x)&0xff00) << 40 | ((x)&0xff0000) << 24 | ((x)&0xff000000) << 8 | (x) >> 8)
+#endif
+
+#define SWAP_BYTES(x) (((x) >> 56) | ((x)&0xff00) << 56 | ((x)&0xff0000) << 24 | ((x)&0xff000000) << 8 | ((x) >> 8) | ((x)&0xff) << 24)
+
 #endif

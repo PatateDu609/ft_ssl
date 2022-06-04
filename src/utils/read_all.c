@@ -1,32 +1,42 @@
 #include "utils.h"
 #include "libft.h"
 
+#include <limits.h>
 #include <unistd.h>
 
 #define BUFF_SIZE 4096
 
-char *read_all(int fd)
+static uint8_t *merge(uint8_t *a, uint8_t *b, size_t old, size_t len)
 {
-	char buf[BUFF_SIZE + 1];
-	char *tmp;
-	char *str;
+	uint8_t *res = realloc(a, len * sizeof(uint8_t));
+	if (res == NULL)
+		throwe("Allocation error");
+	ft_memcpy(res + old, b, len - old);
+	return (res);
+}
+
+struct s_msg *read_all(int fd)
+{
+	uint8_t buf[BUFF_SIZE + 1];
+	__unused uint8_t *tmp;
+	struct s_msg *msg;
 	int r;
 
-	str = NULL;
+	msg = ft_calloc(1, sizeof(struct s_msg));
+	if (msg == NULL)
+		throwe("Allocation error");
+
 	while ((r = read(fd, buf, BUFF_SIZE)) > 0)
 	{
-		buf[r] = '\0';
-		tmp = str;
-		str = ft_strjoin(str, buf);
-		free(tmp);
+		msg->len += r;
+		msg->data = merge(msg->data, buf, msg->len - r, msg->len);
 	}
 	if (r == -1)
 	{
-		perror("ft_ssl: read");
-		free(str);
-		return (NULL);
+		free(msg->data);
+		free(msg);
+		throwe("Read error");
 	}
-	if (str == NULL)
-		str = ft_strdup("");
-	return (str);
+	msg->bits = msg->len * CHAR_BIT;
+	return (msg);
 }

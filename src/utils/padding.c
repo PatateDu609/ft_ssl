@@ -11,32 +11,30 @@
  * @param last The length of the last block
  * @return The padded message
  */
-struct s_blocks *ft_get_blocks(char *msg, size_t block_len, size_t last)
+struct s_blocks *ft_get_blocks(struct s_msg *msg, size_t block_len, __unused size_t last)
 {
 	struct s_blocks *blocks;
 	blocks = malloc(sizeof(struct s_blocks));
 	if (blocks == NULL)
 		throwe("Allocation error");
 
-	size_t len = ft_strlen(msg);
 	blocks->block_size = block_len;
-	blocks->nb = len / block_len;
+	blocks->nb = msg->len / block_len;
 
-	uint32_t remaining = len % block_len;
-	if (remaining != 0 || remaining >= last)
+	if (msg->len % block_len)
 		blocks->nb++;
-	if (blocks->nb == 0) // If the message is empty
+	if (msg->len % block_len >= last)
 		blocks->nb++;
-	blocks->data = ft_calloc(blocks->nb * block_len, sizeof(uint8_t *));
+	blocks->data = ft_calloc(blocks->nb * block_len, sizeof(uint8_t));
 	if (blocks->data == NULL)
 		throwe("Allocation error");
 
-	ft_memcpy(blocks->data, msg, len);
-	blocks->data[len] = 0x80; // Append 1 bit
+	ft_memcpy(blocks->data, msg->data, msg->len);
+	blocks->data[msg->len] = 0x80;
 
-	len *= CHAR_BIT; // number of bits in the message
-	size_t last_index = (blocks->nb - 1) * block_len + last;
-	ft_memcpy(blocks->data + last_index, &len, sizeof(size_t));
+	size_t s = blocks->nb * block_len - sizeof(size_t);
+	size_t bits = msg->bits;
+	ft_memcpy(blocks->data + s, &bits, sizeof(bits));
 
 	return (blocks);
 }

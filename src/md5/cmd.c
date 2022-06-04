@@ -1,9 +1,11 @@
 #include "md5.h"
 #include "ft_ssl.h"
+#include "libft.h"
 #include "utils.h"
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <limits.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,9 +33,15 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 {
 	char hash[MD5_HASH_SIZE + 1];
 	name = name ? name : "stdin";
+	uint8_t hash_raw[16];
+	ft_memset(hash_raw, 0, sizeof(hash_raw));
+	ft_memcpy(hash_raw, &ctx->a, sizeof(uint32_t));
+	ft_memcpy(hash_raw + sizeof(uint32_t), &ctx->b, sizeof(uint32_t));
+	ft_memcpy(hash_raw + sizeof(uint32_t) * 2, &ctx->c, sizeof(uint32_t));
+	ft_memcpy(hash_raw + sizeof(uint32_t) * 3, &ctx->d, sizeof(uint32_t));
 
-	snprintf(hash, MD5_HASH_SIZE, "%08x%08x%08x%08x",
-			 ctx->a, ctx->b, ctx->c, ctx->d);
+	for (size_t i = 0; i < sizeof(hash_raw); i++)
+		snprintf(hash + i * 2, MD5_HASH_SIZE + 1, "%02x", hash_raw[i]);
 
 	if (e->opts & MD5_FLAG_q)
 		printf("%s\n", hash);
@@ -48,7 +56,7 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 static void ft_process_file(struct s_env *e, char *filename)
 {
 	int fd = ft_getfd(filename);
-	char *input = NULL;
+	struct s_msg *msg = NULL;
 
 	if (fd == -1)
 	{
@@ -59,22 +67,26 @@ static void ft_process_file(struct s_env *e, char *filename)
 	struct s_md5_ctx ctx;
 	md5_init(&ctx);
 
-	input = read_all(fd);
-	if (input == NULL)
-		throwe("allocation error");
-	struct s_blocks *blks = ft_get_blocks(input, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
+	msg = read_all(fd);
+	struct s_blocks *blks = ft_get_blocks(msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
 	md5_process(blks, &ctx);
+	ft_print_hash(&ctx, e, (char *)msg->data, filename);
+
 	free(blks->data);
 	free(blks);
-	ft_print_hash(&ctx, e, input, filename);
-	free(input);
+	free(msg->data);
+	free(msg);
 }
 
 static void ft_process_string(struct s_env *e, char *str)
 {
 	struct s_blocks *blks;
+	struct s_msg msg;
+	msg.len = ft_strlen(str);
+	msg.data = (uint8_t *)str;
+	msg.bits = msg.len * CHAR_BIT;
 
-	blks = ft_get_blocks(str, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
+	blks = ft_get_blocks(&msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
 	if (blks == NULL)
 		throwe("ft_ssl: error: cannot get blocks");
 	struct s_md5_ctx ctx;
