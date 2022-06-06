@@ -35,6 +35,8 @@ static void prepare_hash(struct s_sha2_ctx *ctx, char *hash)
 	}
 	else
 	{
+		for (size_t i = 0; i < 8; i++)
+			ctx->u64.st[i] = SWAP_BYTES(ctx->u64.st[i]);
 		for (size_t i = 0; i < ctx->hash_size / 2; i++)
 			snprintf(hash + i * 2, SHA2_DIGEST_MAX_SIZE, "%02x", ctx->u64.hash[i]);
 	}
