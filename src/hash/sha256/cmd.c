@@ -16,6 +16,7 @@ int ft_sha256(struct s_env *e)
 	ctx.block_size = SHA256_BLOCK_SIZE;
 	ctx.last_block = SHA256_LAST_BLOCK_SIZE;
 	ctx.hash_size = SHA256_HASH_SIZE;
+	ctx.use_str = 1;
 
 	ft_sha2(&ctx, e);
 

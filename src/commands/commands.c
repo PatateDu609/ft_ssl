@@ -163,6 +163,15 @@ void init_cmd(void)
 	ret |= register_cmd("sha256", DIGEST, ft_sha256);
 	register_param("sha256", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
+	ret |= register_cmd("sha224", DIGEST, ft_sha224);
+	register_param("sha224", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
+
+	ret |= register_cmd("sha512", DIGEST, ft_sha512);
+	register_param("sha512", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
+
+	ret |= register_cmd("sha384", DIGEST, ft_sha384);
+	register_param("sha384", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
+
 	if (!ret)
 		throwe("Failed to register commands");
 }

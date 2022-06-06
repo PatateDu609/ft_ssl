@@ -123,6 +123,7 @@ struct s_sha2_ctx
 	size_t last_block;
 	size_t hash_size;
 	size_t nb_rounds;
+	uint8_t use_str;
 
 	union
 	{

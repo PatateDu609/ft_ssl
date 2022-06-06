@@ -30,10 +30,13 @@ BASENAME			:=	main.c							\
 						utils/padding.c					\
 						utils/input.c					\
 						help/cmd.c						\
-						md5/cmd.c						\
-						md5/init.c						\
-						md5/update.c					\
-						sha256/cmd.c					\
+						hash/md5/cmd.c					\
+						hash/md5/init.c					\
+						hash/md5/update.c				\
+						hash/sha256/cmd.c				\
+						hash/sha224/cmd.c				\
+						hash/sha512/cmd.c				\
+						hash/sha384/cmd.c				\
 						utils/ft_get_fd.c				\
 						generic/sha2/sha2.c				\
 						generic/sha2/consts.c			\
