@@ -40,7 +40,7 @@ static void prepare_hash(struct s_sha2_ctx *ctx, char *hash)
 	}
 }
 
-void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg)
+void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg, uint64_t opts, const char *name)
 {
 	char *fn = get_fn_disp(ctx->type);
 	char hash[SHA2_DIGEST_MAX_SIZE];
@@ -49,6 +49,13 @@ void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg)
 	ft_memcpy(msg_disp, msg->data, msg->len);
 	msg_disp[msg->len] = '\0';
 
-	printf("%s(\"%s\")= %s\n", fn, msg_disp, hash);
+	if (opts & SHA256_FLAG_p)
+		printf("%s(\"%s\")= %s\n", fn, msg_disp, hash);
+	else if (opts & SHA256_FLAG_r)
+		printf("%s *%s\n", hash, name);
+	else if (opts & SHA256_FLAG_q)
+		printf("%s\n", hash);
+	else
+		printf("%s(%s)= %s\n", fn, name, hash);
 	free(msg_disp);
 }

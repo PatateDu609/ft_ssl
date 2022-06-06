@@ -14,7 +14,7 @@ static void process_msgs(struct s_sha2_ctx *ctx, struct s_env *e, union u_input 
 		msg.bits = msg.len * 8;
 		struct s_blocks *blks = ft_get_blocks(&msg, ctx->block_size, ctx->last_block, __ORDER_BIG_ENDIAN__);
 		sha2_update(ctx, blks);
-		sha2_final(ctx, &msg);
+		sha2_final(ctx, &msg, e->opts, STRING_ARG_NAME);
 	}
 	else
 	{
@@ -25,7 +25,7 @@ static void process_msgs(struct s_sha2_ctx *ctx, struct s_env *e, union u_input 
 			struct s_msg *msg = read_all(fd);
 			struct s_blocks *blks = ft_get_blocks(msg, ctx->block_size, ctx->last_block, __ORDER_BIG_ENDIAN__);
 			sha2_update(ctx, blks);
-			sha2_final(ctx, msg);
+			sha2_final(ctx, msg, e->opts, input->files[i]);
 			close(fd);
 			free(msg->data);
 			free(msg);
@@ -34,7 +34,7 @@ static void process_msgs(struct s_sha2_ctx *ctx, struct s_env *e, union u_input 
 
 			setup_consts(ctx);
 			setup_iv(ctx);
-		} while (input->files[i++]);
+		} while (input->files[++i]);
 	}
 }
 

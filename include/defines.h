@@ -14,6 +14,8 @@
 #define OPT_NOT_FOUND NULL
 #define OPT_PREFIX "-"
 
+#define STRING_ARG_NAME "arg"
+
 // command_flag_opt
 #define HELP_FLAG_HELP 0x1
 

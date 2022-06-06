@@ -75,7 +75,7 @@ static void ft_process_string(struct s_env *e, char *str)
 	md5_init(&ctx);
 
 	md5_process(blks, &ctx);
-	ft_print_hash(&ctx, e, str, "arg");
+	ft_print_hash(&ctx, e, str, STRING_ARG_NAME);
 
 	free(blks->data);
 	free(blks);

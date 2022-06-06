@@ -132,12 +132,12 @@ void sha2_update(struct s_sha2_ctx *ctx, struct s_blocks *blks)
 	{
 		if (ctx->type == SHA2_TYPE_SHA256 || ctx->type == SHA2_TYPE_SHA224)
 		{
-			uint32_t *block = (uint32_t *)blks->data + i * blks->block_size;
+			uint32_t *block = (uint32_t *)(blks->data + i * blks->block_size);
 			sha2_32_process_block(ctx, block);
 		}
 		else
 		{
-			uint64_t *block = (uint64_t *)blks->data + i * blks->block_size;
+			uint64_t *block = (uint64_t *)(blks->data + i * blks->block_size);
 			sha2_64_process_block(ctx, block);
 		}
 	}

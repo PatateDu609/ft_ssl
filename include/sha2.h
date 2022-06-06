@@ -8,7 +8,7 @@ void setup_consts(struct s_sha2_ctx *ctx);
 void setup_iv(struct s_sha2_ctx *ctx);
 
 void sha2_update(struct s_sha2_ctx *ctx, struct s_blocks *blks);
-void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg);
+void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg, uint64_t opts, const char *name);
 
 void ft_sha2(struct s_sha2_ctx *ctx, struct s_env *env);
 
