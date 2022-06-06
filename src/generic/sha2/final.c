@@ -28,6 +28,8 @@ static void prepare_hash(struct s_sha2_ctx *ctx, char *hash)
 {
 	if (ctx->type == SHA2_TYPE_SHA256 || ctx->type == SHA2_TYPE_SHA224)
 	{
+		for (size_t i = 0; i < 8; i++)
+			ctx->u32.st[i] = SWAP_BYTES32(ctx->u32.st[i]);
 		for (size_t i = 0; i < ctx->hash_size / 2; i++)
 			snprintf(hash + i * 2, SHA2_DIGEST_MAX_SIZE, "%02x", ctx->u32.hash[i]);
 	}
@@ -47,6 +49,6 @@ void sha2_final(struct s_sha2_ctx *ctx, const struct s_msg *msg)
 	ft_memcpy(msg_disp, msg->data, msg->len);
 	msg_disp[msg->len] = '\0';
 
-	printf("%s(\"%s\") = %s\n", fn, msg_disp, hash);
+	printf("%s(\"%s\")= %s\n", fn, msg_disp, hash);
 	free(msg_disp);
 }

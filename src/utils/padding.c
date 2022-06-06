@@ -34,6 +34,7 @@ struct s_blocks *ft_get_blocks(struct s_msg *msg, size_t block_len, size_t last,
 	blocks->data[msg->len] = 0x80;
 
 	size_t s = blocks->nb * block_len - sizeof(size_t);
+	// Ensure that bits is always passed in the right endian (specified by endian)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	size_t bits = (endian == __ORDER_LITTLE_ENDIAN__) ? msg->bits : SWAP_BYTES(msg->bits);
 #else

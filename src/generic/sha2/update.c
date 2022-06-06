@@ -1,4 +1,5 @@
 #include "sha2.h"
+#include "libft.h"
 
 #define a0 ctx->u32.st[0]
 #define b0 ctx->u32.st[1]
@@ -20,10 +21,11 @@ static void sha2_32_process_block(struct s_sha2_ctx *ctx, uint32_t *block)
 
 	uint32_t w[64]; // message schedule
 	uint32_t t1, t2;
+	ft_memset(w, 0, sizeof(w));
 
 	// copy the block to the message schedule and expand it
 	for (size_t i = 0; i < 16; i++)
-		w[i] = block[i];
+		w[i] = SWAP_BYTES32(block[i]);
 	for (size_t i = 16; i < ctx->nb_rounds; i++)
 		w[i] = SSIG1(w[i - 2]) + w[i - 7] + SSIG0(w[i - 15]) + w[i - 16];
 
@@ -87,7 +89,7 @@ static void sha2_64_process_block(struct s_sha2_ctx *ctx, uint64_t *block)
 
 	// copy the block to the message schedule and expand it
 	for (size_t i = 0; i < 16; i++)
-		w[i] = block[i];
+		w[i] = SWAP_BYTES(block[i]);
 	for (size_t i = 16; i < ctx->nb_rounds; i++)
 		w[i] = SSIG1(w[i - 2]) + w[i - 7] + SSIG0(w[i - 15]) + w[i - 16];
 
@@ -130,12 +132,12 @@ void sha2_update(struct s_sha2_ctx *ctx, struct s_blocks *blks)
 	{
 		if (ctx->type == SHA2_TYPE_SHA256 || ctx->type == SHA2_TYPE_SHA224)
 		{
-			uint32_t *block = (uint32_t *)blks->data + i * ctx->block_size;
+			uint32_t *block = (uint32_t *)blks->data + i * blks->block_size;
 			sha2_32_process_block(ctx, block);
 		}
 		else
 		{
-			uint64_t *block = (uint64_t *)blks->data + i * ctx->block_size;
+			uint64_t *block = (uint64_t *)blks->data + i * blks->block_size;
 			sha2_64_process_block(ctx, block);
 		}
 	}
