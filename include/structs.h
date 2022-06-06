@@ -32,6 +32,15 @@ enum e_param_type
 	PARAM_TYPE_COMMAND,
 };
 
+enum e_sha2_type
+{
+	SHA2_TYPE_SHA256, // Mandatory
+	SHA2_TYPE_SHA512, // Optional (first to do) (not implemented)
+
+	SHA2_TYPE_SHA224, // Optional (not implemented)
+	SHA2_TYPE_SHA384, // Optional (not implemented)
+};
+
 struct s_param
 {
 	char *name;				 // name of the parameter
@@ -93,6 +102,13 @@ struct s_blocks
 	size_t block_size; // size of each block in bytes
 };
 
+struct s_msg
+{
+	uint8_t *data; // data of the message
+	size_t len;	   // length of the message
+	size_t bits;   // number of bits in the message
+};
+
 struct s_md5_ctx
 {
 	uint32_t a, b, c, d; // Current state
@@ -100,11 +116,35 @@ struct s_md5_ctx
 	uint8_t s[64];		 // Shift amounts
 };
 
-struct s_msg
+struct s_sha2_ctx
 {
-	uint8_t *data; // data of the message
-	size_t len;	   // length of the message
-	size_t bits;   // number of bits in the message
+	enum e_sha2_type type;
+	size_t block_size;
+	size_t last_block;
+	size_t hash_size;
+	size_t nb_rounds;
+
+	union
+	{
+		struct
+		{
+			union
+			{
+				uint64_t st[8];
+				uint8_t hash[64];
+			};
+			uint64_t k[80];
+		} u64;
+		struct
+		{
+			union
+			{
+				uint32_t st[8];
+				uint8_t hash[32];
+			};
+			uint32_t k[64];
+		} u32;
+	};
 };
 
 #endif

@@ -57,7 +57,7 @@ static void md5_update(struct s_md5_ctx *md5, const uint8_t *input)
 			a = d;
 			d = c;
 			c = b;
-			b += ROTATE_LEFT(f, md5->s[i]);
+			b += ROTL(f, md5->s[i]);
 		}
 	}
 	md5->a += a;

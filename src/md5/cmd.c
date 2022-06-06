@@ -11,24 +11,6 @@
 #include <string.h>
 #include <errno.h>
 
-static int ft_getfd(char *filename)
-{
-	int fd;
-
-	if (filename == NULL)
-		fd = STDIN_FILENO;
-	else
-		fd = open(filename, O_RDONLY);
-	if (fd == -1)
-	{
-		char msg[512];
-		snprintf(msg, 512, "ft_ssl: %s", filename);
-		perror(msg);
-		return -1;
-	}
-	return (fd);
-}
-
 static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, char *name)
 {
 	char hash[MD5_HASH_SIZE + 1];
@@ -68,7 +50,7 @@ static void ft_process_file(struct s_env *e, char *filename)
 	md5_init(&ctx);
 
 	msg = read_all(fd);
-	struct s_blocks *blks = ft_get_blocks(msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
+	struct s_blocks *blks = ft_get_blocks(msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE, __ORDER_LITTLE_ENDIAN__);
 	md5_process(blks, &ctx);
 	ft_print_hash(&ctx, e, (char *)msg->data, filename);
 
@@ -86,7 +68,7 @@ static void ft_process_string(struct s_env *e, char *str)
 	msg.data = (uint8_t *)str;
 	msg.bits = msg.len * CHAR_BIT;
 
-	blks = ft_get_blocks(&msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE);
+	blks = ft_get_blocks(&msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE, __ORDER_LITTLE_ENDIAN__);
 	if (blks == NULL)
 		throwe("ft_ssl: error: cannot get blocks");
 	struct s_md5_ctx ctx;

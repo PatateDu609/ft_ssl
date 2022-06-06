@@ -34,6 +34,11 @@ BASENAME			:=	main.c							\
 						md5/init.c						\
 						md5/update.c					\
 						sha256/cmd.c					\
+						utils/ft_get_fd.c				\
+						generic/sha2/sha2.c				\
+						generic/sha2/consts.c			\
+						generic/sha2/update.c			\
+						generic/sha2/final.c			\
 
 SRCS				:=	$(addprefix $(PATH_SRCS)/, $(BASENAME))
 OBJS				:=	$(addprefix $(PATH_OBJS)/, $(BASENAME:%.c=%.o))

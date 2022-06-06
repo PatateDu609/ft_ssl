@@ -37,8 +37,20 @@
 #define MD5_LAST_BLOCK_SIZE (MD5_BLOCK_SIZE - 8)
 #define SHA256_LAST_BLOCK_SIZE (SHA256_BLOCK_SIZE - 8)
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
-#define ROTATE_RIGHT(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
+#define SHA256_NB_ROUNDS 64
+#define SHA256_HASH_SIZE 32 * 2 + 1 // 32 bytes * 2 = 64 characters + 1 for the null byte
+
+// #define ROTL32(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
+// #define ROTR32(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
+
+// #define ROTL64(x, n) (((x) << (n)) | ((x) >> (64 - (n))))
+// #define ROTR64(x, n) (((x) >> (n)) | ((x) << (64 - (n))))
+
+#define ROTL(x, n) (((x) << (n)) | ((x) >> (sizeof(x) * 8 - (n))))
+#define ROTR(x, n) (((x) >> (n)) | ((x) << (sizeof(x) * 8 - (n))))
+
+#define SHL(x, n) ((x) << (n))
+#define SHR(x, n) ((x) >> (n))
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define LE_64(x) (x)
