@@ -19,6 +19,10 @@ static char *get_fn_disp(enum e_sha2_type type)
 		return "SHA224";
 	case SHA2_TYPE_SHA384:
 		return "SHA384";
+	case SHA2_TYPE_SHA512_224:
+		return "SHA512/224";
+	case SHA2_TYPE_SHA512_256:
+		return "SHA512/256";
 	default:
 		return "UNKNOWN";
 	}

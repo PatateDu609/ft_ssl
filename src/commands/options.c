@@ -126,6 +126,30 @@ void init_options(void)
 	opt = register_option("sha384", "s", OPT_TYPE_IN, SHA384_FLAG_s);
 	set_desc(opt, "Print the sum of the given string");
 	set_value(opt, NULL, "string");
+
+	opt = register_option("sha512-224", "help", OPT_TYPE_GENERAL, SHA512_224_FLAG_HELP);
+	set_desc(opt, "Print this summary");
+	opt = register_option("sha512-224", "p", OPT_TYPE_GENERAL, SHA512_224_FLAG_p);
+	set_desc(opt, "Echo STDIN to STDOUT and append the checksum to STDOUT");
+	opt = register_option("sha512-224", "q", OPT_TYPE_GENERAL, SHA512_224_FLAG_q);
+	set_desc(opt, "Quiet mode, only print the checksum");
+	opt = register_option("sha512-224", "r", OPT_TYPE_GENERAL, SHA512_224_FLAG_r);
+	set_desc(opt, "Reverse the format of the output");
+	opt = register_option("sha512-224", "s", OPT_TYPE_IN, SHA512_224_FLAG_s);
+	set_desc(opt, "Print the sum of the given string");
+	set_value(opt, NULL, "string");
+
+	opt = register_option("sha512-256", "help", OPT_TYPE_GENERAL, SHA512_256_FLAG_HELP);
+	set_desc(opt, "Print this summary");
+	opt = register_option("sha512-256", "p", OPT_TYPE_GENERAL, SHA512_256_FLAG_p);
+	set_desc(opt, "Echo STDIN to STDOUT and append the checksum to STDOUT");
+	opt = register_option("sha512-256", "q", OPT_TYPE_GENERAL, SHA512_256_FLAG_q);
+	set_desc(opt, "Quiet mode, only print the checksum");
+	opt = register_option("sha512-256", "r", OPT_TYPE_GENERAL, SHA512_256_FLAG_r);
+	set_desc(opt, "Reverse the format of the output");
+	opt = register_option("sha512-256", "s", OPT_TYPE_IN, SHA512_256_FLAG_s);
+	set_desc(opt, "Print the sum of the given string");
+	set_value(opt, NULL, "string");
 }
 
 char *get_value(struct s_env *env, uint64_t flag)

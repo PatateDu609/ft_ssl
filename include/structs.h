@@ -34,11 +34,12 @@ enum e_param_type
 
 enum e_sha2_type
 {
-	SHA2_TYPE_SHA256, // Mandatory
-	SHA2_TYPE_SHA512, // Optional (first to do) (not implemented)
-
-	SHA2_TYPE_SHA224, // Optional (not implemented)
-	SHA2_TYPE_SHA384, // Optional (not implemented)
+	SHA2_TYPE_SHA256,
+	SHA2_TYPE_SHA512,
+	SHA2_TYPE_SHA224,
+	SHA2_TYPE_SHA384,
+	SHA2_TYPE_SHA512_224, // SHA512/224
+	SHA2_TYPE_SHA512_256  // SHA512/256
 };
 
 struct s_param

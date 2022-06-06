@@ -37,6 +37,8 @@ BASENAME			:=	main.c							\
 						hash/sha224/cmd.c				\
 						hash/sha512/cmd.c				\
 						hash/sha384/cmd.c				\
+						hash/sha512_224/cmd.c			\
+						hash/sha512_256/cmd.c			\
 						utils/ft_get_fd.c				\
 						generic/sha2/sha2.c				\
 						generic/sha2/consts.c			\

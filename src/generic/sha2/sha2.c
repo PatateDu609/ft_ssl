@@ -13,6 +13,8 @@ static void process_msgs(struct s_sha2_ctx *ctx, struct s_env *e, union u_input 
 		struct s_blocks *blks = ft_get_blocks(&msg, ctx->block_size, ctx->last_block, __ORDER_BIG_ENDIAN__);
 		sha2_update(ctx, blks);
 		sha2_final(ctx, &msg, e->opts, STRING_ARG_NAME);
+		free(blks->data);
+		free(blks);
 	}
 	else
 	{
