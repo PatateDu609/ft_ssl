@@ -5,19 +5,22 @@ make
 function test_hash() {
 	echo -ne "[\033[32;1m$2\033[0m]\t" ; echo "Testing '$1'"
 
-	local mine=`echo -ne "$1" | ./ft_ssl $2 -r | cut -d' ' -f1`
+	local mine=`echo -ne "$1" | ./ft_ssl $2 -q`
 	local openssl=`echo -ne "$1" | openssl $2 -r | cut -d' ' -f1`
 
 	# check if command $2sum exists
-	if [ -x "`which $2sum`" ]; then
-		local md5sum=`echo -ne "$1" | $2sum | cut -d' ' -f1`
+	local sum_command=`which $2sum`
+	if [ -x "$sum_command" ]; then
+		local sum=`echo -ne "$1" | $2sum | cut -d' ' -f1`
 	fi
 
-	if [ "$mine" != "$openssl" ] || [ "$mine" != "$md5sum" ]; then
+	if [ "$mine" != "$openssl" ] || ( [ -x "$sum_command" ] && [ "$mine" != "$sum" ] ); then
 		echo -ne "\033[31;1mFAILED\033[0m: " ; echo "$1"
-		echo "Mine: $mine"
-		echo "OpenSSL: $openssl"
-		echo "$2sum: $md5sum"
+		(echo "Mine\t$mine" ; echo "OpenSSL\t$openssl") | column -t -s '\t'
+
+		if [ -x "$sum_command" ]; then
+			echo "$2sum: $md5sum"
+		fi
 		exit 1
 	fi
 }
