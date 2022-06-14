@@ -6,6 +6,8 @@
 
 #define BUFF_SIZE 4096
 
+// TODO: stream file to buffer
+
 static uint8_t *merge(uint8_t *a, uint8_t *b, size_t old, size_t len)
 {
 	uint8_t *res = realloc(a, len * sizeof(uint8_t));
@@ -28,7 +30,8 @@ struct s_msg *read_all(int fd)
 
 	while ((r = read(fd, buf, BUFF_SIZE)) > 0)
 	{
-		msg->len += r;
+		msg->len += r;	   // will overflow if r > UINT64_MAX but it's not a problem
+		msg->len_128 += r; // will overflow if r > UINT128_MAX (for sha512)
 		msg->data = merge(msg->data, buf, msg->len - r, msg->len);
 	}
 	if (r == -1)

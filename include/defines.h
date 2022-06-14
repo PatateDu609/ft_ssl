@@ -125,4 +125,7 @@
 						 ((x)&0x0000ff00) << 8 | \
 						 ((x)&0x000000ff) << 24)
 
+// No optimisation here, we need to do it in two steps (no mask for 128 bits)
+#define SWAP_BYTES128(x) ((SWAP_BYTES(x) << 64) | SWAP_BYTES(x >> 64))
+
 #endif

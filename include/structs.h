@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ft_math.h"
+
 typedef int (*fn_chk_opt_arg)(char *);
 
 enum e_command_type
@@ -105,9 +107,10 @@ struct s_blocks
 
 struct s_msg
 {
-	uint8_t *data; // data of the message
-	size_t len;	   // length of the message
-	size_t bits;   // number of bits in the message
+	uint8_t *data;	  // data of the message
+	size_t len;		  // length of the message
+	int128_t len_128; // length of the message in 128 bits
+	size_t bits;	  // number of bits in the message
 };
 
 struct s_md5_ctx

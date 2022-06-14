@@ -1,7 +1,7 @@
 NAME				=	ft_ssl
 AUTHOR				:=	gboucett
 
-PATH_INC			:=	-I./include -Ilibft
+PATH_INC			:=	-I./include -Ilibft/include
 PATH_SRCS			:=	src
 PATH_OBJS			:=	objs
 
@@ -175,7 +175,7 @@ all:				$(NAME)
 
 -include $(DEPS)
 
-$(NAME):			$(OBJS) libft
+$(NAME):			libft $(OBJS)
 					$(init_makefile)
 					@tput cnorm
 					@$(clear_progress)

@@ -2,6 +2,43 @@
 #include "libft.h"
 #include <limits.h>
 
+#define SET_LENGTH(x, x128)                                   \
+	{                                                         \
+		if (size_len == 8)                                    \
+		{                                                     \
+			uint64_t bits = x;                                \
+			ft_memcpy(blocks->data + s, &bits, sizeof(bits)); \
+		}                                                     \
+		else                                                  \
+		{                                                     \
+			uint128_t bits = x128;                            \
+			ft_memcpy(blocks->data + s, &bits, sizeof(bits)); \
+		}                                                     \
+	}
+
+static void append_length(struct s_blocks *blocks, struct s_msg *msg, size_t last, uint16_t endian)
+{
+	size_t size_len = blocks->block_size - last;
+	size_t s = blocks->nb * blocks->block_size - size_len;
+
+	// Ensure that bits is always passed in the right endian (specified by endian)
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+
+	if (endian == __ORDER_LITTLE_ENDIAN__)
+		SET_LENGTH(msg->bits, msg->len_128 * CHAR_BIT)
+	else // endian == __ORDER_BIG_ENDIAN__
+		SET_LENGTH(SWAP_BYTES(msg->bits), SWAP_BYTES128(msg->len_128 * CHAR_BIT))
+
+#else // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+	if (endian == __ORDER_LITTLE_ENDIAN__)
+		SET_LENGTH(SWAP_BYTES(msg->bits), SWAP_BYTES128(msg->len_128 * CHAR_BIT))
+	else // endian == __ORDER_BIG_ENDIAN__
+		SET_LENGTH(msg->bits, msg->len_128 * CHAR_BIT)
+
+#endif
+}
+
 /*
  * Should perform the padding of the message according to RFC 1321 and RFC 6234
  * https://tools.ietf.org/html/rfc1321 https://tools.ietf.org/html/rfc6234
@@ -33,14 +70,7 @@ struct s_blocks *ft_get_blocks(struct s_msg *msg, size_t block_len, size_t last,
 	ft_memcpy(blocks->data, msg->data, msg->len);
 	blocks->data[msg->len] = 0x80;
 
-	size_t s = blocks->nb * block_len - sizeof(size_t);
-	// Ensure that bits is always passed in the right endian (specified by endian)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	size_t bits = (endian == __ORDER_LITTLE_ENDIAN__) ? msg->bits : SWAP_BYTES(msg->bits);
-#else
-	size_t bits = (endian == __ORDER_LITTLE_ENDIAN__) ? SWAP_BYTES(msg->bits) : msg->bits;
-#endif
-	ft_memcpy(blocks->data + s, &bits, sizeof(bits));
+	append_length(blocks, msg, last, endian);
 
 	return (blocks);
 }
