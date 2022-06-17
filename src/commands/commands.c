@@ -32,7 +32,7 @@ static uint8_t register_cmd(char *name, enum e_command_type type, fn_command cmd
 		return (0);
 	}
 
-	data.cmds = realloc(data.cmds, sizeof(struct s_command) * (data.cnt + 1));
+	data.cmds = realloc(data.cmds, sizeof *data.cmds * (data.cnt + 1));
 	if (!data.cmds)
 		throwe("Failed to allocate memory for commands");
 
@@ -40,7 +40,7 @@ static uint8_t register_cmd(char *name, enum e_command_type type, fn_command cmd
 	data.longest_name = MAX(data.longest_name, ft_strlen(name));
 	data.cmds[data.cnt].type = type;
 	data.cmds[data.cnt].cmd = cmd;
-	data.cmds[data.cnt].options = ft_calloc(1, sizeof(struct s_option *));
+	data.cmds[data.cnt].options = ft_calloc(1, sizeof *data.cmds[data.cnt].options);
 	data.cmds[data.cnt].params = NULL;
 	data.cmds[data.cnt].param_cnt = 0;
 	if (!data.cmds[data.cnt].options)

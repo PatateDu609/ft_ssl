@@ -24,7 +24,7 @@ struct s_msg *read_all(int fd)
 	struct s_msg *msg;
 	int r;
 
-	msg = ft_calloc(1, sizeof(struct s_msg));
+	msg = ft_calloc(1, sizeof *msg);
 	if (msg == NULL)
 		throwe("Allocation error");
 

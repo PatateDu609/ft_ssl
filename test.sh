@@ -1,5 +1,7 @@
 #!/bin/bash
 
+EXIT_CODE=0
+
 make
 
 function test_hash() {
@@ -16,12 +18,14 @@ function test_hash() {
 
 	if [ "$mine" != "$openssl" ] || ( [ -x "$sum_command" ] && [ "$mine" != "$sum" ] ); then
 		echo -ne "\033[31;1mFAILED\033[0m: " ; echo "$1"
-		(echo "Mine\t$mine" ; echo "OpenSSL\t$openssl") | column -t -s '\t'
+		local output=`(echo "\tMine\t$mine" ; echo "\tOpenSSL\t$openssl")`
 
 		if [ -x "$sum_command" ]; then
-			echo "$2sum: $md5sum"
+			local output_sum=`( echo "\t$2sum\t$sum" )`
+			output="$output|$output_sum"
 		fi
-		exit 1
+		echo "$output" | tr '|' '\n' | column -t -s '\t'
+		EXIT_CODE=1
 	fi
 }
 
@@ -46,3 +50,5 @@ for i in $to_test; do
 	test $i
 	echo
 done
+
+exit $EXIT_CODE

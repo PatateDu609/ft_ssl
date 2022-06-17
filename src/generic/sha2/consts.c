@@ -98,18 +98,18 @@ void setup_iv(struct s_sha2_ctx *ctx)
 		ctx->u64.st[2] = 0x1dfab7ae32ff9c82;
 		ctx->u64.st[3] = 0x679dd514582f9fcf;
 		ctx->u64.st[4] = 0x0f6d2b697bd44da8;
-		ctx->u64.st[5] = 0x77e36f7304de6090;
-		ctx->u64.st[6] = 0x3d9d39a2af05ecd6;
-		ctx->u64.st[7] = 0x831cad2a11ececf4;
+		ctx->u64.st[5] = 0x77e36f7304c48942;
+		ctx->u64.st[6] = 0x3f9d85a86a1d36c8;
+		ctx->u64.st[7] = 0x1112e6ad91d692a1;
 		break;
 	case SHA2_TYPE_SHA512_256:
 		ctx->u64.st[0] = 0x22312194fc2bf72c;
 		ctx->u64.st[1] = 0x9f555fa3c84c64c2;
 		ctx->u64.st[2] = 0x2393b86b6f53b151;
 		ctx->u64.st[3] = 0x963877195940eabd;
-		ctx->u64.st[4] = 0x963e0543c8d6e1d6;
-		ctx->u64.st[5] = 0x4b3a393d192b78c1;
-		ctx->u64.st[6] = 0x6ec9057f2444c6e0;
-		ctx->u64.st[7] = 0x7efaced2bb542ac4;
+		ctx->u64.st[4] = 0x96283ee2a88effe3;
+		ctx->u64.st[5] = 0xbe5e1e2553863992;
+		ctx->u64.st[6] = 0x2b0199fc2c85b8aa;
+		ctx->u64.st[7] = 0x0eb72ddc81c52ca2;
 	}
 }

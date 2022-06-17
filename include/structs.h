@@ -107,10 +107,11 @@ struct s_blocks
 
 struct s_msg
 {
-	uint8_t *data;	  // data of the message
-	size_t len;		  // length of the message
-	int128_t len_128; // length of the message in 128 bits
-	size_t bits;	  // number of bits in the message
+	uint8_t *data;	   // data of the message
+	size_t len;		   // length of the message
+	int128_t len_128;  // length of the message in 128 bits
+	size_t bits;	   // number of bits in the message
+	size_t block_size; // true block size in bytes
 };
 
 struct s_md5_ctx

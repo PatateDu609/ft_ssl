@@ -13,6 +13,8 @@ DEBUG_MODE			:=	1
 
 SYS_ENDIAN			:=	1
 
+DISABLE_DEPRECATED	:=	1
+
 LIBFT_FLAGS			:=	SYS_ENDIAN=${SYS_ENDIAN}
 PATH_LIBFT			:=	libft
 LIBFT				:=	$(LIBFT_PATH)/libft.a
@@ -29,6 +31,7 @@ BASENAME			:=	main.c							\
 						utils/read_all.c				\
 						utils/padding.c					\
 						utils/input.c					\
+						utils/stream.c					\
 						help/cmd.c						\
 						hash/md5/cmd.c					\
 						hash/md5/init.c					\
@@ -69,8 +72,14 @@ NAME_PRINT			=	$(COLOR_HEADER)Name$(CLEAR_COLOR)
 PROGRESS_BAR_CHAR	=	$(COLOR_PERCENT)▰$(CLEAR_COLOR)
 REMAINING_BAR_CHAR 	=	$(COLOR_PERCENT)╍$(CLEAR_COLOR)
 
+WARNING_FILES		=
+
 ifeq ($(DEBUG_MODE), 1)
 	CFLAGS			+=	-DDEBUG
+endif
+
+ifeq ($(DISABLE_DEPRECATED), 1)
+	CFLAGS			+=	-Wno-error=deprecated-declarations
 endif
 
 define show_git_infos =
@@ -148,6 +157,16 @@ define tear_down =
 	fi
 endef
 
+define print_warnings =
+	@for i in $(WARNING_FILES); do \
+		cat $$i; \
+		if [ -s $$i ]; then \
+			echo ""; \
+		fi; \
+		rm $$i; \
+	done
+endef
+
 
 #######################################################################################################################################################
 #######################################################################################################################################################
@@ -159,6 +178,9 @@ $(PATH_OBJS)/%.o:	$(PATH_SRCS)/%.c
 
 					$(shell mkdir -p $(dir $@))
 					$(eval TMP_COMP := $(shell $(CC) $(CFLAGS) $(PATH_INC) -MMD -c $< -o $@ 2> /tmp/compilation_error_$(subst /,_,$@) && echo 'true'))
+
+					$(eval WARNING_FILES += /tmp/compilation_error_$(subst /,_,$@))
+
 					@if [ '$(TMP_COMP)' != 'true' ]; then \
 						tput cnorm; \
 						echo ""; \
@@ -171,6 +193,7 @@ $(PATH_OBJS)/%.o:	$(PATH_SRCS)/%.c
 					fi
 
 all:				$(NAME)
+					$(print_warnings)
 					$(tear_down)
 
 -include $(DEPS)
