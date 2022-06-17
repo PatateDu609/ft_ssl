@@ -92,6 +92,7 @@ void setup_iv(struct s_sha2_ctx *ctx)
 		ctx->u64.st[6] = 0xdb0c2e0d64f98fa7;
 		ctx->u64.st[7] = 0x47b5481dbefa4fa4;
 		break;
+	//* The following consts are defined by FIPS 180-4, section 5.3.6.1 and section 5.3.6.2
 	case SHA2_TYPE_SHA512_224:
 		ctx->u64.st[0] = 0x8c3d37c819544da2;
 		ctx->u64.st[1] = 0x73e1996689dcd4d6;

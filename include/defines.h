@@ -8,7 +8,7 @@
 #define __constructor(pri) __attribute__((constructor(pri + 100)))
 #define __destructor(pri) __attribute__((destructor(pri + 100)))
 #define __unused_result __attribute__((warn_unused_result))
-#define __deprecated __attribute__((deprecated))
+#define __deprecated(msg) __attribute__((deprecated(msg)))
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 

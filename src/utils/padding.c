@@ -74,3 +74,31 @@ struct s_blocks *ft_get_blocks(struct s_msg *msg, size_t block_len, size_t last,
 
 	return (blocks);
 }
+
+struct s_blocks *ft_file_padding(struct s_msg *msg, size_t block_len, size_t last, uint16_t endian)
+{
+	struct s_blocks *blocks;
+	blocks = malloc(sizeof(struct s_blocks));
+	if (blocks == NULL)
+		throwe("Allocation error");
+
+	blocks->block_size = block_len;
+	blocks->nb = 1;
+
+	uint8_t is_last = msg->block_size >= last && msg->block_size < block_len;
+
+	if (is_last)
+		blocks->nb++;
+	blocks->data = ft_calloc(blocks->nb * block_len, sizeof *blocks->data);
+	if (blocks->data == NULL)
+		throwe("Allocation error");
+
+	ft_memcpy(blocks->data, msg->data, msg->block_size);
+
+	if (is_last || msg->block_size < last)
+	{
+		blocks->data[msg->block_size] = 0x80;
+		append_length(blocks, msg, last, endian);
+	}
+	return (blocks);
+}

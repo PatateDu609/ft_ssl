@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "ft_stream.h"
 
 struct s_msg *ft_bufferize(ft_stream *stream, size_t block_size)
 {
@@ -24,6 +23,6 @@ struct s_msg *ft_bufferize(ft_stream *stream, size_t block_size)
 	msg->block_size = len;
 	msg->len = stream->filesize; // make it overflow if filesize is too big
 	msg->bits = msg->len * 8;
-	msg->len_128 = msg->len * 8;
+	msg->len_128 = stream->filesize;
 	return (msg);
 }
