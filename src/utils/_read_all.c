@@ -6,7 +6,8 @@
 
 #define BUFF_SIZE 4096
 
-// TODO: stream file to buffer
+//! Deprecated (use ft_bufferize), but kept for compatibility reasons
+//! It will be removed in a short time
 
 static uint8_t *merge(uint8_t *a, uint8_t *b, size_t old, size_t len)
 {

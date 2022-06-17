@@ -22,13 +22,15 @@ LIBFT				:=	$(LIBFT_PATH)/libft.a
 CFLAGS				:=	-Wall -Werror -Wextra -g3 -ggdb -gdwarf-2 -fdiagnostics-color=always
 LDFLAGS				:=	-L$(PATH_LIBFT) -lft
 
+# Sources that begin with an underscore are deprecated.
+
 BASENAME			:=	main.c							\
 						throw.c							\
 						commands/commands.c				\
 						commands/options.c				\
 						commands/setup_env.c			\
+						utils/_read_all.c				\
 						utils/usage.c					\
-						utils/read_all.c				\
 						utils/padding.c					\
 						utils/input.c					\
 						utils/stream.c					\
