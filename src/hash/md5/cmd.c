@@ -81,7 +81,7 @@ static void ft_process_file(struct s_env *e, char *filename)
 		free_blocks(&blks);
 	} while (cont);
 
-	ft_print_hash(&ctx, e, (char *)(final ? final->data : NULL), STRING_ARG_NAME);
+	ft_print_hash(&ctx, e, (char *)(final ? final->data : NULL), filename);
 	ft_sclose(stream);
 }
 
