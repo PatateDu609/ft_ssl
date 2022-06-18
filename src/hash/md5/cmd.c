@@ -11,6 +11,10 @@
 #include <string.h>
 #include <errno.h>
 
+static uint16_t endian = __ORDER_LITTLE_ENDIAN__;
+static size_t block_size = MD5_BLOCK_SIZE;
+static size_t last = MD5_LAST_BLOCK_SIZE;
+
 static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, char *name)
 {
 	char hash[MD5_HASH_SIZE + 1];
@@ -30,7 +34,7 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 	else if (e->opts & MD5_FLAG_r)
 		printf("%s *%s\n", hash, name);
 	else if (e->opts & MD5_FLAG_p)
-		printf("MD5(%s)= %s\n", input, hash);
+		printf("MD5(%s)= %s\n", input ? input : "error", hash);
 	else
 		printf("MD5(%s)= %s\n", name, hash);
 }
@@ -38,26 +42,45 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 static void ft_process_file(struct s_env *e, char *filename)
 {
 	int fd = ft_getfd(filename);
-	struct s_msg *msg = NULL;
-
-	if (fd == -1)
+	ft_stream *stream = ft_sopen_fd(fd);
+	if (stream == NULL)
 	{
 		fprintf(stderr, "ft_ssl: %s: %s\n", filename, strerror(errno));
 		return;
 	}
 
+	struct s_msg *msg = NULL;
+	struct s_msg *final = NULL;
+
+	if (fd == 0)
+		final = ft_calloc(1, sizeof *final);
+
 	struct s_md5_ctx ctx;
 	md5_init(&ctx);
+	uint8_t cont;
 
-	msg = read_all(fd);
-	struct s_blocks *blks = ft_get_blocks(msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE, __ORDER_LITTLE_ENDIAN__);
-	md5_process(blks, &ctx);
-	ft_print_hash(&ctx, e, (char *)msg->data, filename);
+	do
+	{
+		msg = ft_bufferize(stream, block_size);
+		struct s_blocks *blks = ft_file_padding(msg, block_size, last, endian);
 
-	free(blks->data);
-	free(blks);
-	free(msg->data);
-	free(msg);
+		md5_process(blks, &ctx);
+		if (final)
+		{
+			if (!final->data)
+				final->data = ft_memdup(msg->data, msg->len);
+			else
+				final->data = ft_memjoin(final->data, final->len, msg->data, msg->block_size);
+			final->len += msg->block_size;
+		}
+
+		cont = msg->block_size == block_size;
+		free_msg(&msg);
+		free_blocks(&blks);
+	} while (cont);
+
+	ft_print_hash(&ctx, e, (char *)(final ? final->data : NULL), STRING_ARG_NAME);
+	ft_sclose(stream);
 }
 
 static void ft_process_string(struct s_env *e, char *str)
@@ -68,7 +91,7 @@ static void ft_process_string(struct s_env *e, char *str)
 	msg.data = (uint8_t *)str;
 	msg.bits = msg.len * CHAR_BIT;
 
-	blks = ft_get_blocks(&msg, MD5_BLOCK_SIZE, MD5_LAST_BLOCK_SIZE, __ORDER_LITTLE_ENDIAN__);
+	blks = ft_get_blocks(&msg, block_size, last, endian);
 	if (blks == NULL)
 		throwe("ft_ssl: error: cannot get blocks");
 	struct s_md5_ctx ctx;

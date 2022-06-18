@@ -8,28 +8,6 @@
 
 static uint16_t endian = __ORDER_BIG_ENDIAN__;
 
-static uint8_t *ft_memdup(uint8_t *src, size_t len)
-{
-	uint8_t *dst;
-
-	if (!(dst = malloc(len)))
-		return (NULL);
-	ft_memcpy(dst, src, len);
-	return (dst);
-}
-
-static uint8_t *ft_memjoin(uint8_t *src1, size_t len1, uint8_t *src2, size_t len2)
-{
-	uint8_t *dst;
-
-	if (!(dst = malloc(len1 + len2)))
-		return (NULL);
-	ft_memcpy(dst, src1, len1);
-	ft_memcpy(dst + len1, src2, len2);
-	free(src1);
-	return (dst);
-}
-
 static void stream(int fd, struct s_sha2_ctx *ctx, struct s_env *e, char *name)
 {
 	ft_stream *stream = ft_sopen_fd(fd);
@@ -39,13 +17,9 @@ static void stream(int fd, struct s_sha2_ctx *ctx, struct s_env *e, char *name)
 
 	struct s_msg *msg;
 	uint8_t cont;
-	uint64_t i = 0;
-	uint64_t max = 164773888;
 
 	do
 	{
-		printf("processing block %.4f [%lu / %lu]\n", ((double)i / max) * 100, i, max);
-		i++;
 		msg = ft_bufferize(stream, ctx->block_size);
 		struct s_blocks *blks = ft_file_padding(msg, ctx->block_size, ctx->last_block, endian);
 
@@ -60,13 +34,8 @@ static void stream(int fd, struct s_sha2_ctx *ctx, struct s_env *e, char *name)
 		}
 
 		cont = msg->block_size == ctx->block_size;
-		free(msg->data);
-		free(msg);
-		msg = NULL;
-
-		free(blks->data);
-		free(blks);
-		blks = NULL;
+		free_blocks(&blks);
+		free_msg(&msg);
 	} while (cont);
 
 	sha2_final(ctx, final, e->opts, name ? name : "stdin");

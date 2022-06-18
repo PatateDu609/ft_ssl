@@ -6,9 +6,9 @@ struct s_msg *ft_bufferize(ft_stream *stream, size_t block_size)
 
 	if (!stream)
 		return (NULL);
-	if (!(msg = malloc(sizeof(struct s_msg))))
+	if (!(msg = malloc(sizeof *msg)))
 		return (NULL);
-	if (!(msg->data = malloc(block_size)))
+	if (!(msg->data = malloc(block_size * sizeof *msg->data)))
 	{
 		free(msg);
 		return (NULL);

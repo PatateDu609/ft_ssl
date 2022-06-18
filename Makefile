@@ -29,8 +29,8 @@ BASENAME			:=	main.c							\
 						commands/commands.c				\
 						commands/options.c				\
 						commands/setup_env.c			\
-						utils/_read_all.c				\
 						utils/usage.c					\
+						utils/free.c					\
 						utils/padding.c					\
 						utils/input.c					\
 						utils/stream.c					\
