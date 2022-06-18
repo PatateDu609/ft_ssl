@@ -65,6 +65,8 @@ static void process_msgs(struct s_sha2_ctx *ctx, struct s_env *e, union u_input 
 		do
 		{
 			int fd = ft_getfd(input->files[i]);
+			if (fd == -1)
+				continue;
 			stream(fd, ctx, e, input->files[i]);
 			setup_consts(ctx);
 			setup_iv(ctx);

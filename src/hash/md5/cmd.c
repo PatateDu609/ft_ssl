@@ -42,6 +42,8 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 static void ft_process_file(struct s_env *e, char *filename)
 {
 	int fd = ft_getfd(filename);
+	if (fd == -1)
+		return;
 	ft_stream *stream = ft_sopen_fd(fd);
 	if (stream == NULL)
 	{
