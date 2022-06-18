@@ -14,6 +14,19 @@ static int ft_count(char **av)
 	return (i);
 }
 
+static void free_strs(char **strs)
+{
+	int i;
+
+	i = 0;
+	while (strs[i])
+	{
+		free(strs[i]);
+		i++;
+	}
+	free(strs);
+}
+
 int main(int ac, char **av)
 {
 	if (ac > 2) // Default behavior with args
@@ -41,6 +54,9 @@ int main(int ac, char **av)
 			break;
 		int nb = ft_count(args);
 		ft_exec(nb + 1, args - 1);
+
+		free_strs(args);
+		free(line);
 	}
 	return 0;
 }

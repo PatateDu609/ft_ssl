@@ -120,6 +120,8 @@ int ft_exec(int ac, char **av)
 		return ft_help(NULL);
 
 	setup_env(ac, av, &env);
+	if (env.opts == (uint64_t)-1)
+		return ft_help(NULL);
 
 	for (i = 0; i < data.cnt; i++)
 	{

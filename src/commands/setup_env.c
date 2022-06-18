@@ -7,7 +7,7 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 	char *cmd_name = av[0];
 	struct s_option ***opt = get_options(cmd_name);
 	if (!opt)
-		throwe("Command not found");
+		return (uint64_t)-1;
 
 	struct s_option **options = *opt;
 	size_t opt_cnt = get_opt_cnt(options);
@@ -43,7 +43,7 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 		else if (i + 1 < ac && ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
 			*params = i + 1;
 		else if (i + 1 >= ac && ft_strncmp(OPT_PREFIX, av[i], ft_strlen(OPT_PREFIX)))
-			*params = i; // TODO: check if it is usefull
+			*params = i;
 	}
 	if (ac == 1)
 		*params = 1;
@@ -61,5 +61,7 @@ void setup_env(int ac, char **av, struct s_env *env)
 	env->av = av;
 
 	env->opts = get_active_options(ac, av, &params);
+	if (env->opts == (uint64_t)-1)
+		return;
 	env->params = av + params;
 }
