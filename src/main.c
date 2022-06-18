@@ -16,6 +16,8 @@ static int ft_count(char **av)
 
 static void free_strs(char **strs)
 {
+	if (!strs)
+		return;
 	int i;
 
 	i = 0;
@@ -29,7 +31,7 @@ static void free_strs(char **strs)
 
 int main(int ac, char **av)
 {
-	if (ac > 2) // Default behavior with args
+	if (ac >= 2) // Default behavior with args
 		return ft_exec(ac, av);
 
 	while (1) // Interactive mode
@@ -37,17 +39,28 @@ int main(int ac, char **av)
 		write(1, "ft_ssl> ", 8);
 		char *line = NULL;
 		int ret = get_next_line(0, &line);
+		char **args;
+
 		if (ret == -1)
+		{
+			free(line);
 			return (1);
+		}
 		if (ret == 0)
+		{
+			free_strs(args);
+			free(line);
 			break;
-		char **args = ft_split(line, ' ');
+		}
+
+		args = ft_split(line, ' ');
 		if (!args)
 		{
 			free(line);
 			fprintf(stderr, "Error: Allocation error\n");
 			return (1);
 		}
+
 		if (args[0] == NULL)
 			continue;
 		if (!ft_strcmp(args[0], "exit"))

@@ -67,6 +67,8 @@ static void ft_process_file(struct s_env *e, char *filename)
 		struct s_blocks *blks = ft_file_padding(msg, block_size, last, endian);
 
 		md5_process(blks, &ctx);
+		free_blocks(&blks);
+
 		if (final)
 		{
 			if (!final->data)
@@ -78,11 +80,11 @@ static void ft_process_file(struct s_env *e, char *filename)
 
 		cont = msg->block_size == block_size;
 		free_msg(&msg);
-		free_blocks(&blks);
 	} while (cont);
 
 	ft_print_hash(&ctx, e, (char *)(final ? final->data : NULL), filename);
 	ft_sclose(stream);
+	free_msg(&final);
 }
 
 static void ft_process_string(struct s_env *e, char *str)
