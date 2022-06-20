@@ -29,7 +29,7 @@ function test_hash() {
 	fi
 }
 
-function test() {
+function test_hash() {
 	test_hash "" $1
 	test_hash "Hello World" $1
 	test_hash "Hello World!" $1
@@ -47,7 +47,7 @@ function test() {
 to_test="md5 sha224 sha256 sha384 sha512 sha512-224 sha512-256"
 
 for i in $to_test; do
-	test $i
+	test_hash $i
 	echo
 done
 
