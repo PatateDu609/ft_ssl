@@ -39,7 +39,7 @@ int main(int ac, char **av)
 		write(1, "ft_ssl> ", 8);
 		char *line = NULL;
 		int ret = get_next_line(0, &line);
-		char **args;
+		char **args = NULL;
 
 		if (ret == -1)
 		{

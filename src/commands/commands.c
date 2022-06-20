@@ -154,30 +154,30 @@ struct s_option ***get_options(const char *name)
 
 void init_cmd(void)
 {
-	uint8_t ret = 0;
+	uint8_t ret = 1;
 
-	ret |= register_cmd("help", STANDARD, ft_help);
+	ret &= register_cmd("help", STANDARD, ft_help);
 	register_param("help", "command", PARAM_TYPE_COMMAND, 0, 0, NULL, "Display help for command");
 
-	ret |= register_cmd("md5", DIGEST, ft_md5);
+	ret &= register_cmd("md5", DIGEST, ft_md5);
 	register_param("md5", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha256", DIGEST, ft_sha256);
+	ret &= register_cmd("sha256", DIGEST, ft_sha256);
 	register_param("sha256", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha224", DIGEST, ft_sha224);
+	ret &= register_cmd("sha224", DIGEST, ft_sha224);
 	register_param("sha224", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha512", DIGEST, ft_sha512);
+	ret &= register_cmd("sha512", DIGEST, ft_sha512);
 	register_param("sha512", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha384", DIGEST, ft_sha384);
+	ret &= register_cmd("sha384", DIGEST, ft_sha384);
 	register_param("sha384", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha512-224", DIGEST, ft_sha512_224);
+	ret &= register_cmd("sha512-224", DIGEST, ft_sha512_224);
 	register_param("sha512-224", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
-	ret |= register_cmd("sha512-256", DIGEST, ft_sha512_256);
+	ret &= register_cmd("sha512-256", DIGEST, ft_sha512_256);
 	register_param("sha512-256", "file", PARAM_TYPE_FILE, 1, 0, "stdin", "Files to digest");
 
 	if (!ret)
