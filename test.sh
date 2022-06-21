@@ -5,8 +5,8 @@ EXIT_CODE=0
 make
 
 function test_hash() {
-	echo -ne "[\033[32;1m$2\033[0m]\t" ; echo "Testing '$1'"
 
+	echo -ne "[\033[32;1m$2\033[0m]\t" ; echo "Testing '$1'"
 	local mine=`echo -ne "$1" | ./ft_ssl $2 -q`
 	local openssl=`echo -ne "$1" | openssl $2 -r | cut -d' ' -f1`
 
@@ -29,7 +29,7 @@ function test_hash() {
 	fi
 }
 
-function test_hash() {
+function test_hash_fn() {
 	test_hash "" $1
 	test_hash "Hello World" $1
 	test_hash "Hello World!" $1
@@ -46,8 +46,9 @@ function test_hash() {
 
 to_test="md5 sha224 sha256 sha384 sha512 sha512-224 sha512-256"
 
+
 for i in $to_test; do
-	test_hash $i
+	test_hash_fn $i
 	echo
 done
 
