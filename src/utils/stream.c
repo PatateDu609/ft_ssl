@@ -1,6 +1,9 @@
 #include "utils.h"
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
 
-struct s_msg *ft_bufferize(ft_stream *stream, size_t block_size)
+struct s_msg *ft_bufferize(ft_stream *stream, char *filename, size_t block_size)
 {
 	struct s_msg *msg;
 
@@ -18,6 +21,7 @@ struct s_msg *ft_bufferize(ft_stream *stream, size_t block_size)
 	{
 		free(msg->data);
 		free(msg);
+		fprintf(stderr, "ft_ssl: %s: %s\n", filename ? filename : "stdin", strerror(errno));
 		return (NULL);
 	}
 	msg->block_size = len;

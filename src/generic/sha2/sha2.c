@@ -20,14 +20,19 @@ static void stream(int fd, struct s_sha2_ctx *ctx, struct s_env *e, char *name)
 
 	do
 	{
-		msg = ft_bufferize(stream, ctx->block_size);
+		msg = ft_bufferize(stream, name, ctx->block_size);
+		if (msg == NULL)
+		{
+			cont = 2;
+			break;
+		}
 		struct s_blocks *blks = ft_file_padding(msg, ctx->block_size, ctx->last_block, endian);
 
 		sha2_update(ctx, blks);
 		if (final)
 		{
 			if (!final->data)
-				final->data = ft_memdup(msg->data, msg->len);
+				final->data = ft_memdup(msg->data, msg->block_size);
 			else
 				final->data = ft_memjoin(final->data, final->len, msg->data, msg->block_size);
 			final->len += msg->block_size;
@@ -38,7 +43,8 @@ static void stream(int fd, struct s_sha2_ctx *ctx, struct s_env *e, char *name)
 		free_msg(&msg);
 	} while (cont);
 
-	sha2_final(ctx, final, e->opts, name ? name : "stdin");
+	if (cont != 2)
+		sha2_final(ctx, final, e->opts, name ? name : "stdin");
 	ft_sclose(stream);
 	stream = NULL;
 	if (final)

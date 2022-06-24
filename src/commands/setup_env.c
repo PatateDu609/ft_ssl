@@ -40,14 +40,14 @@ static uint64_t get_active_options(int ac, char **av, int *params)
 		// If we didn't find the option, then it's a param
 		if (i >= ac)
 			break;
+		else if (i < ac && ft_strncmp(OPT_PREFIX, av[i], ft_strlen(OPT_PREFIX)))
+			*params = i;
 		else if (i + 1 < ac && ft_strncmp(OPT_PREFIX, av[i + 1], ft_strlen(OPT_PREFIX)))
 			*params = i + 1;
 		else if (i + 1 >= ac && ft_strncmp(OPT_PREFIX, av[i], ft_strlen(OPT_PREFIX)))
 			*params = i;
 	}
-	if (ac == 1)
-		*params = 1;
-	if (!*params)
+	if (!*params || *params >= ac)
 		*params = ac;
 	return (active_options);
 }

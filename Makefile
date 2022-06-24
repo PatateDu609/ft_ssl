@@ -34,6 +34,8 @@ BASENAME			:=	main.c							\
 						utils/padding.c					\
 						utils/input.c					\
 						utils/stream.c					\
+						utils/ft_get_fd.c				\
+						utils/ft_print_sp.c				\
 						help/cmd.c						\
 						hash/md5/cmd.c					\
 						hash/md5/init.c					\
@@ -44,7 +46,6 @@ BASENAME			:=	main.c							\
 						hash/sha384/cmd.c				\
 						hash/sha512_224/cmd.c			\
 						hash/sha512_256/cmd.c			\
-						utils/ft_get_fd.c				\
 						generic/sha2/sha2.c				\
 						generic/sha2/consts.c			\
 						generic/sha2/update.c			\

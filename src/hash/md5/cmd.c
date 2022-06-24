@@ -15,7 +15,7 @@ static uint16_t endian = __ORDER_LITTLE_ENDIAN__;
 static size_t block_size = MD5_BLOCK_SIZE;
 static size_t last = MD5_LAST_BLOCK_SIZE;
 
-static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, char *name)
+static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, struct s_msg *msg, char *name)
 {
 	char hash[MD5_HASH_SIZE + 1];
 	name = name ? name : "stdin";
@@ -29,6 +29,8 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 	for (size_t i = 0; i < sizeof(hash_raw); i++)
 		snprintf(hash + i * 2, MD5_HASH_SIZE + 1, "%02x", hash_raw[i]);
 
+	char *input = msg ? ft_print_sp(msg->data, msg->len) : NULL;
+
 	if (e->opts & MD5_FLAG_q)
 		printf("%s\n", hash);
 	else if (e->opts & MD5_FLAG_r)
@@ -37,6 +39,8 @@ static void ft_print_hash(struct s_md5_ctx *ctx, struct s_env *e, char *input, c
 		printf("MD5(%s)= %s\n", input ? input : "error", hash);
 	else
 		printf("MD5(%s)= %s\n", name, hash);
+
+	free(input);
 }
 
 static void ft_process_file(struct s_env *e, char *filename)
@@ -63,7 +67,12 @@ static void ft_process_file(struct s_env *e, char *filename)
 
 	do
 	{
-		msg = ft_bufferize(stream, block_size);
+		msg = ft_bufferize(stream, filename, block_size);
+		if (msg == NULL)
+		{
+			cont = 2;
+			break;
+		}
 		struct s_blocks *blks = ft_file_padding(msg, block_size, last, endian);
 
 		md5_process(blks, &ctx);
@@ -72,7 +81,7 @@ static void ft_process_file(struct s_env *e, char *filename)
 		if (final)
 		{
 			if (!final->data)
-				final->data = ft_memdup(msg->data, msg->len);
+				final->data = ft_memdup(msg->data, msg->block_size);
 			else
 				final->data = ft_memjoin(final->data, final->len, msg->data, msg->block_size);
 			final->len += msg->block_size;
@@ -82,7 +91,8 @@ static void ft_process_file(struct s_env *e, char *filename)
 		free_msg(&msg);
 	} while (cont);
 
-	ft_print_hash(&ctx, e, (char *)(final ? final->data : NULL), filename);
+	if (cont != 2)
+		ft_print_hash(&ctx, e, final, filename);
 	ft_sclose(stream);
 	free_msg(&final);
 }
@@ -102,7 +112,7 @@ static void ft_process_string(struct s_env *e, char *str)
 	md5_init(&ctx);
 
 	md5_process(blks, &ctx);
-	ft_print_hash(&ctx, e, str, STRING_ARG_NAME);
+	ft_print_hash(&ctx, e, NULL, STRING_ARG_NAME);
 
 	free(blks->data);
 	free(blks);
