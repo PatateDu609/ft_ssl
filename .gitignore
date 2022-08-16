@@ -2,5 +2,7 @@
 objs
 ft_ssl
 **.o
+**.d
+obj/
 **.a
 .gdb_history
