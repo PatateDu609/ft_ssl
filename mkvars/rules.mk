@@ -19,7 +19,7 @@ all:							$(NAME)
 $(PATH_OBJ)/%.o:			$(PATH_SRC)/%$(LANGEXTENSION) mkvars/*.mk Makefile
 	$(MKDIR) $(dir $@)
 	$(ECHO) -e " $(BOLD)$(BLUE)$(GREATER)$(NORMAL)   Compiling $(ITALIC)$(subst $(PATH_SRC)/,,$<)$(TRESET)"
-	$(CC) $(CFLAGS) -c -MMD $< -o $@
+	$(CC) $(CFLAGS) -MMD -c $< -o $@
 
 -include $(DEPS)
 

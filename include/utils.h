@@ -18,4 +18,10 @@ __unused_result int ft_getfd(char *filename);
 void free_msg(struct s_msg **msg);
 void free_blocks(struct s_blocks **blks);
 
+
+void ft_process_hash(struct s_env *e, char *alg_pretty_name,
+	char *(*hash_str)(const char *),
+	char *(hash_filename)(const char *),
+	char *(hash_descriptor)(int));
+
 #endif

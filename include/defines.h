@@ -17,50 +17,56 @@
 
 #define STRING_ARG_NAME "arg"
 
+#define FLAG_HELP 0x1
+#define FLAG_p 0x2
+#define FLAG_q 0x4
+#define FLAG_r 0x8
+#define FLAG_s 0x10
+
 // command_flag_opt
-#define HELP_FLAG_HELP 0x1
+#define HELP_FLAG_HELP FLAG_HELP
 
-#define MD5_FLAG_HELP 0x1
-#define MD5_FLAG_p 0x2
-#define MD5_FLAG_q 0x4
-#define MD5_FLAG_r 0x8
-#define MD5_FLAG_s 0x10
+#define MD5_FLAG_HELP FLAG_HELP
+#define MD5_FLAG_p FLAG_p
+#define MD5_FLAG_q FLAG_q
+#define MD5_FLAG_r FLAG_r
+#define MD5_FLAG_s FLAG_s
 
-#define SHA256_FLAG_HELP 0x1
-#define SHA256_FLAG_p 0x2
-#define SHA256_FLAG_q 0x4
-#define SHA256_FLAG_r 0x8
-#define SHA256_FLAG_s 0x10
+#define SHA256_FLAG_HELP FLAG_HELP
+#define SHA256_FLAG_p FLAG_p
+#define SHA256_FLAG_q FLAG_q
+#define SHA256_FLAG_r FLAG_r
+#define SHA256_FLAG_s FLAG_s
 
-#define SHA512_FLAG_HELP 0x1
-#define SHA512_FLAG_p 0x2
-#define SHA512_FLAG_q 0x4
-#define SHA512_FLAG_r 0x8
-#define SHA512_FLAG_s 0x10
+#define SHA512_FLAG_HELP FLAG_HELP
+#define SHA512_FLAG_p FLAG_p
+#define SHA512_FLAG_q FLAG_q
+#define SHA512_FLAG_r FLAG_r
+#define SHA512_FLAG_s FLAG_s
 
-#define SHA224_FLAG_HELP 0x1
-#define SHA224_FLAG_p 0x2
-#define SHA224_FLAG_q 0x4
-#define SHA224_FLAG_r 0x8
-#define SHA224_FLAG_s 0x10
+#define SHA224_FLAG_HELP FLAG_HELP
+#define SHA224_FLAG_p FLAG_p
+#define SHA224_FLAG_q FLAG_q
+#define SHA224_FLAG_r FLAG_r
+#define SHA224_FLAG_s FLAG_s
 
-#define SHA384_FLAG_HELP 0x1
-#define SHA384_FLAG_p 0x2
-#define SHA384_FLAG_q 0x4
-#define SHA384_FLAG_r 0x8
-#define SHA384_FLAG_s 0x10
+#define SHA384_FLAG_HELP FLAG_HELP
+#define SHA384_FLAG_p FLAG_p
+#define SHA384_FLAG_q FLAG_q
+#define SHA384_FLAG_r FLAG_r
+#define SHA384_FLAG_s FLAG_s
 
-#define SHA512_224_FLAG_HELP 0x1
-#define SHA512_224_FLAG_p 0x2
-#define SHA512_224_FLAG_q 0x4
-#define SHA512_224_FLAG_r 0x8
-#define SHA512_224_FLAG_s 0x10
+#define SHA512_224_FLAG_HELP FLAG_HELP
+#define SHA512_224_FLAG_p FLAG_p
+#define SHA512_224_FLAG_q FLAG_q
+#define SHA512_224_FLAG_r FLAG_r
+#define SHA512_224_FLAG_s FLAG_s
 
-#define SHA512_256_FLAG_HELP 0x1
-#define SHA512_256_FLAG_p 0x2
-#define SHA512_256_FLAG_q 0x4
-#define SHA512_256_FLAG_r 0x8
-#define SHA512_256_FLAG_s 0x10
+#define SHA512_256_FLAG_HELP FLAG_HELP
+#define SHA512_256_FLAG_p FLAG_p
+#define SHA512_256_FLAG_q FLAG_q
+#define SHA512_256_FLAG_r FLAG_r
+#define SHA512_256_FLAG_s FLAG_s
 
 // Block size
 #define MD5_BLOCK_SIZE 64	  // 512 bits = 64 bytes

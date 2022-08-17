@@ -7,7 +7,8 @@ LANGUAGE						=	C
 COLORS							:=	256
 DEBUG							:=	1
 RELEASE							:=	0
-LDFLAGS							:=	-Llibcrypto42 -Llibft -lft -lcrypto42
+LDFLAGS							:=	-Llibcrypto42 -Llibft		\
+									-lft -lcrypto42 -lm
 
 SUBLIBS							:=	libcrypto42/libcrypto42.a libft/libft.a
 

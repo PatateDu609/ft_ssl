@@ -11,7 +11,7 @@ function test_hash() {
 	local openssl=`echo -ne "$1" | openssl $2 -r | cut -d' ' -f1`
 
 	# check if command $2sum exists
-	local sum_command=`which $2sum`
+	local sum_command=`which $2sum 2> /dev/null`
 	if [ -x "$sum_command" ]; then
 		local sum=`echo -ne "$1" | $2sum | cut -d' ' -f1`
 	fi
