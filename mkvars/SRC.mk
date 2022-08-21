@@ -18,12 +18,13 @@ BASENAME				?=	main					\
 							utils/usage				\
 							utils/process			\
 							utils/init_cipher		\
+							utils/bufferize_base64	\
 							help/cmd				\
 							commands/commands		\
 							commands/options		\
 							commands/setup_env		\
 							cipher/base64			\
-							cipher/des-ecb
+							cipher/des-ecb			\
 
 SRC						:=	$(addprefix $(PATH_SRC)/,\
 								$(addsuffix $(LANGEXTENSION), $(BASENAME)))

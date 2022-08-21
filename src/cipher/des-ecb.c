@@ -24,8 +24,16 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 		throwe(e->out_file, true);
 	}
 
-	fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
-	fwrite(init_ctx->salt, 1, init_ctx->salt_len, out);
+	if (e->opts & DES_FLAG_a)
+	{
+		stream_base64_enc(out, (uint8_t *)SALT_MAGIC, SALT_MAGIC_LEN);
+		stream_base64_enc(out, init_ctx->salt, init_ctx->salt_len);
+	}
+	else
+	{
+		fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
+		fwrite(init_ctx->salt, 1, init_ctx->salt_len, out);
+	}
 
 	uint64_t blk = 0;
 	uint64_t key;
@@ -46,7 +54,11 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 		blk = bswap_64(blk);
 		uint64_t enc = des_encrypt(blk, key);
 		enc = bswap_64(enc);
-		fwrite(&enc, sizeof enc, 1, out);
+
+		if (e->opts & DES_FLAG_a)
+			stream_base64_enc(out, (uint8_t *)&enc, sizeof enc);
+		else
+			fwrite(&enc, 1, sizeof enc, out);
 
 		blk = 0;
 	}
@@ -57,7 +69,16 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 
 		uint64_t enc = des_encrypt(padding, key);
 		enc = bswap_64(enc);
-		fwrite(&enc, sizeof enc, 1, out);
+		if (e->opts & DES_FLAG_a)
+			stream_base64_enc(out, (uint8_t *)&enc, sizeof enc);
+		else
+			fwrite(&enc, 1, sizeof enc, out);
+	}
+
+	if (e->opts & DES_FLAG_a)
+	{
+		stream_base64_enc_flush(out);
+		fwrite("\n", 1, 1, out);
 	}
 
 	fclose(in);

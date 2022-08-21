@@ -121,7 +121,7 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx)
 		req.dklen = ctx->key_len + ctx->iv_len;
 		req.salt = ctx->salt;
 		req.salt_len = ctx->salt_len;
-		req.iterations = 1000;
+		req.iterations = 10000;
 		req.password = (uint8_t *)pass;
 		req.password_len = strlen(pass);
 

@@ -6,6 +6,8 @@
 #include "error.h"
 #include "ft_stream.h"
 
+#include <stdio.h>
+
 __unused_result struct s_msg *ft_bufferize(ft_stream *stream, char *filename, size_t block_size);
 __unused_result char *ft_print_sp(unsigned char *str, size_t len);
 
@@ -25,5 +27,8 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 	char *(hash_descriptor)(int));
 
 void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx);
+
+void stream_base64_enc(FILE *out, uint8_t *buf, size_t len);
+void stream_base64_enc_flush(FILE *out);
 
 #endif
