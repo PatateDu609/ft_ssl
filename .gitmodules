@@ -1,0 +1,6 @@
+[submodule "libft"]
+	path = libft
+	url = https://github.com/PatateDu609/libft
+[submodule "libcrypto42"]
+	path = libcrypto42
+	url = https://github.com/PatateDu609/libcrypto42
