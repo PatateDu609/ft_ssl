@@ -14,7 +14,11 @@ static int ft_base64_encode(struct s_env *e)
 
 	char *res = base64_encode_file(infile);
 	if (res == NULL)
+	{
+		if (errno)
+			perror(infile);
 		return (1);
+	}
 
 	char *outfile = e->out_file;
 
@@ -40,7 +44,11 @@ static int ft_base64_decode(struct s_env *e)
 
 	uint8_t *res = base64_decode_file(infile, &len);
 	if (res == NULL)
+	{
+		if (errno)
+			perror(infile);
 		return (1);
+	}
 	char *outfile = e->out_file;
 
 	FILE *f = outfile ? fopen(outfile, "w") : stdout;

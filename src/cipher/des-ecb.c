@@ -13,7 +13,7 @@
 
 static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
@@ -87,7 +87,7 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 
 static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *ctx)
 {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
