@@ -6,3 +6,4 @@ ft_ssl
 obj/
 **.a
 .gdb_history
+.idea

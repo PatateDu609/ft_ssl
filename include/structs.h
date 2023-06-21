@@ -166,6 +166,7 @@ struct s_cipher_init_ctx
 	uint8_t *key;
 	size_t key_len;
 
+	bool write_salt;
 	uint8_t *salt;
 	size_t salt_len;
 };

@@ -25,7 +25,7 @@ uint8_t *ft_str_to_hex(char *str, size_t target_len)
 		if (!found)
 			return NULL;
 
-		int index = found - set;
+		ssize_t index = found - set;
 		if (i % 2 == 0)
 			tmp = index;
 		else
@@ -38,7 +38,6 @@ uint8_t *ft_str_to_hex(char *str, size_t target_len)
 
 static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, char *ukey)
 {
-
 	if (e->opts & FLAG_d)
 	{
 		char *infile = e->in_file;
@@ -67,7 +66,8 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, cha
 		if (usalt)
 			return ft_str_to_hex(usalt, ctx->salt_len);
 		if (ukey)
-			return ft_str_to_hex("3F", ctx->salt_len);
+			return NULL;
+		ctx->write_salt = true;
 		return get_random_bytes(ctx->salt_len);
 	}
 }
@@ -86,12 +86,17 @@ static char *ft_init_pass(struct s_env *e, char *ukey)
 	snprintf(msg, sizeof msg, "%senter %s %s password: ", verif, e->cmd->name, mode);
 
 	char *first = askpass(msg + strlen(verif));
+	if (!first)
+		throwe("couldn't ask for new password", true);
 
 	if (!(e->opts & FLAG_d))
 	{
 		char *second = askpass(msg);
+		if (!second)
+			throwe("couldn't ask for new password", true);
 
-		if (strcmp(first, second))
+		size_t len = strlen(first);
+		if (len != strlen(second) || strncmp(first, second, len) != 0)
 		{
 			free(first);
 			free(second);
@@ -105,6 +110,8 @@ static char *ft_init_pass(struct s_env *e, char *ukey)
 void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx)
 {
 	char *ukey = get_value(e, DES_FLAG_k);
+
+	ctx->write_salt = false;
 
 	ctx->salt = ft_init_salt(e, ctx, ukey);
 	char *pass = ft_init_pass(e, ukey);

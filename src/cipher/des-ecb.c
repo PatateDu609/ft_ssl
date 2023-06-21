@@ -3,13 +3,11 @@
 #include "cipher.h"
 #include "defines.h"
 #include "usage.h"
-#include "commands.h"
 #include "utils.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 {
@@ -24,16 +22,18 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx)
 		throwe(e->out_file, true);
 	}
 
-	if (e->opts & DES_FLAG_a)
-	{
-		stream_base64_enc(out, (uint8_t *)SALT_MAGIC, SALT_MAGIC_LEN);
-		stream_base64_enc(out, init_ctx->salt, init_ctx->salt_len);
-	}
-	else
-	{
-		fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
-		fwrite(init_ctx->salt, 1, init_ctx->salt_len, out);
-	}
+    if (init_ctx->write_salt) {
+        if (e->opts & DES_FLAG_a)
+        {
+            stream_base64_enc(out, (uint8_t *)SALT_MAGIC, SALT_MAGIC_LEN);
+            stream_base64_enc(out, init_ctx->salt, init_ctx->salt_len);
+        }
+        else
+        {
+            fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
+            fwrite(init_ctx->salt, 1, init_ctx->salt_len, out);
+        }
+    }
 
 	uint64_t blk = 0;
 	uint64_t key;
@@ -148,6 +148,10 @@ int ft_des_ecb(struct s_env *e)
 	init_ctx.key_len = 8;
 
 	ft_init_cipher(e, &init_ctx);
+
+    if (!init_ctx.salt) {
+        init_ctx.salt_len = 0;
+    }
 
 	if (e->opts & DES_FLAG_d)
 		ft_des_ecb_dec(e, &init_ctx);
