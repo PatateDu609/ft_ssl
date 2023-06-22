@@ -204,6 +204,7 @@ void init_cmd(void)
 
 	ret &= register_cmd("base64", CIPHER, ft_base64);
 	ret &= register_cmd("des-ecb", CIPHER, ft_des_ecb);
+	ret &= register_cmd("des-cbc", CIPHER, ft_des_cbc);
 
 	if (!ret)
 		throwe("Failed to register commands", false);

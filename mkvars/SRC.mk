@@ -25,6 +25,7 @@ BASENAME				?=	main					\
 							commands/setup_env		\
 							cipher/base64			\
 							cipher/des-ecb			\
+							cipher/des-cbc			\
 
 SRC						:=	$(addprefix $(PATH_SRC)/,\
 								$(addsuffix $(LANGEXTENSION), $(BASENAME)))

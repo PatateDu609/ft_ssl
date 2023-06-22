@@ -117,7 +117,7 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *ctx)
 			loop = true;
 		else
 		{
-			uint len = sizeof blk;
+			size_t len = sizeof blk;
 			if (ret == 0)
 			{
 				uint8_t *ptr = (uint8_t *)&blk;

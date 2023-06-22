@@ -190,6 +190,33 @@ void init_options(void)
 	set_value(opt, NULL, "iv");
 	opt = register_option("des-ecb", "a", OPT_TYPE_OUT, DES_FLAG_a);
 	set_desc(opt, "Base64 encode/decode, depending on the encrypt/decrypt mode");
+
+	opt = register_option("des-cbc", "help", OPT_TYPE_GENERAL, DES_FLAG_HELP);
+	set_desc(opt, "Print this summary");
+	opt = register_option("des-cbc", "e", OPT_TYPE_GENERAL, DES_FLAG_e);
+	set_desc(opt, "Encrypt mode");
+	opt = register_option("des-cbc", "d", OPT_TYPE_GENERAL, DES_FLAG_d);
+	set_desc(opt, "Decrypt mode");
+	opt = register_option("des-cbc", "k", OPT_TYPE_IN, DES_FLAG_k);
+	set_desc(opt, "Raw key in hex");
+	set_value(opt, NULL, "key");
+	opt = register_option("des-cbc", "i", OPT_TYPE_IN, DES_FLAG_i);
+	set_desc(opt, "Input file");
+	set_value(opt, NULL, "infile");
+	opt = register_option("des-cbc", "o", OPT_TYPE_OUT, DES_FLAG_o);
+	set_desc(opt, "Output file");
+	set_value(opt, NULL, "outfile");
+	opt = register_option("des-cbc", "p", OPT_TYPE_ENC, DES_FLAG_p);
+	set_desc(opt, "Passphrase value");
+	set_value(opt, NULL, "passphrase");
+	opt = register_option("des-cbc", "s", OPT_TYPE_ENC, DES_FLAG_s);
+	set_desc(opt, "Raw salt in hex");
+	set_value(opt, NULL, "salt");
+	opt = register_option("des-cbc", "v", OPT_TYPE_GENERAL, DES_FLAG_v);
+	set_desc(opt, "Initialization vector in hex");
+	set_value(opt, NULL, "iv");
+	opt = register_option("des-cbc", "a", OPT_TYPE_OUT, DES_FLAG_a);
+	set_desc(opt, "Base64 encode/decode, depending on the encrypt/decrypt mode");
 }
 
 char *get_value(struct s_env *env, uint64_t flag)
