@@ -6,14 +6,14 @@
 
 struct stream_ctx
 {
-	uint8_t buf[3];
+	uint8_t buf[48];
 	size_t pos;
 	uint8_t line_pos;
 };
 
 // Static globals are initialized to 0
 static struct stream_ctx encoder;
-// static struct stream_ctx decoder;
+static struct stream_ctx decoder;
 
 void stream_base64_enc(FILE *out, uint8_t *buf, size_t len)
 {
@@ -28,7 +28,7 @@ void stream_base64_enc(FILE *out, uint8_t *buf, size_t len)
 void stream_base64_enc_flush(FILE *out)
 {
 	if (encoder.pos == 0)
-		return ;
+		return;
 
 	char *encoded = base64_encode(encoder.buf, encoder.pos);
 	encoder.pos = 0;
@@ -48,7 +48,22 @@ void stream_base64_enc_flush(FILE *out)
 	}
 }
 
-// void stream_base64_dec(FILE *in, uint8_t *buf, size_t len)
-// {
+void stream_base64_dec(FILE *in, uint8_t *buf, size_t len)
+{
+	for (size_t i = 0; i < len; i++) {
+		if (!decoder.buf[0] && decoder.pos >= sizeof decoder.buf) {
+			decoder.pos = 0;
 
-// }
+			char __buf[65];
+			size_t res = fread(__buf, sizeof __buf[0], sizeof __buf, in);
+			if (res == 0) {
+				//...
+			}
+			else if (res == sizeof __buf) {
+				char *new_decoded;
+				base64_decode(__buf, sizeof __buf);
+			}
+		}
+		buf[i] = decoder.buf[decoder.pos++];
+	}
+}
