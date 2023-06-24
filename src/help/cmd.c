@@ -9,7 +9,7 @@
 static void ft_print(enum e_command_type type)
 {
 	char **names;
-	int longest = get_longest_name();
+	int longest = (int)get_longest_name();
 
 	names = get_cmd_names(type);
 	if (!*names)

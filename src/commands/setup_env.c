@@ -9,7 +9,7 @@ static void fill_env(struct s_env *env)
 {
 	for (int i = 1; i < env->ac; i++)
 	{
-		if (strncmp(OPT_PREFIX, env->av[i], OPT_PREFIX_LEN))
+		if (strncmp(OPT_PREFIX, env->av[i], OPT_PREFIX_LEN) != 0)
 		{
 			env->params = env->av + i;
 			return;
@@ -18,7 +18,7 @@ static void fill_env(struct s_env *env)
 		bool found = false;
 		for (size_t j = 0; j < env->option_cnt; j++)
 		{
-			if (strcmp(env->av[i] + OPT_PREFIX_LEN, env->options[j]->name))
+			if (strcmp(env->av[i] + OPT_PREFIX_LEN, env->options[j]->name) != 0)
 				continue;
 
 			found = true;
