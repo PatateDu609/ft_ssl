@@ -28,7 +28,8 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 
 void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx);
 
-void stream_base64_enc(FILE *out, uint8_t *buf, size_t len);
+void stream_base64_enc(FILE *out, const uint8_t *buf, size_t len);
 void stream_base64_enc_flush(FILE *out);
+size_t stream_base64_dec(FILE *in, uint8_t *buf, size_t len);
 
 #endif

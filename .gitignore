@@ -7,3 +7,6 @@ obj/
 **.a
 .gdb_history
 .idea
+
+*.crypt
+.tmp

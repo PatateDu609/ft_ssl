@@ -38,6 +38,16 @@ uint8_t *ft_str_to_hex(char *str, size_t target_len)
 
 static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, char *ukey)
 {
+    if (e->opts & DES_FLAG_s)
+    {
+        char *usalt = get_value(e, DES_FLAG_s); // User salt is ignored if decrypt mode
+
+        if (usalt)
+            return ft_str_to_hex(usalt, ctx->salt_len);
+        if (ukey)
+            return NULL;
+    }
+
 	if (e->opts & FLAG_d)
 	{
 		char *infile = e->in_file;
@@ -58,18 +68,10 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, cha
 		uint8_t *salt = malloc(ctx->salt_len);
 		memcpy(salt, buf + SALT_MAGIC_LEN, ctx->salt_len);
 		return salt;
-	}
-	else
-	{
-		char *usalt = get_value(e, DES_FLAG_s); // User salt is ignored if decrypt mode
-
-		if (usalt)
-			return ft_str_to_hex(usalt, ctx->salt_len);
-		if (ukey)
-			return NULL;
-		ctx->write_salt = true;
-		return get_random_bytes(ctx->salt_len);
-	}
+	} else {
+        ctx->write_salt = true;
+        return get_random_bytes(ctx->salt_len);
+    }
 }
 
 static char *ft_init_pass(struct s_env *e, char *ukey)
