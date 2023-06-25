@@ -114,25 +114,6 @@ static void ft_des_cbc_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		fclose(out);
 }
 
-__unused static void ft_print_init_ctx(struct s_cipher_init_ctx *init_ctx) {
-	if (init_ctx->salt) {
-		fprintf(stdout, "salt=");
-		for (size_t i = 0; i < init_ctx->salt_len; i++)
-			fprintf(stdout, "%02X", init_ctx->salt[i]);
-		fprintf(stdout, "\n");
-	}
-
-	fprintf(stdout, "key=");
-	for (size_t i = 0; i < init_ctx->key_len; i++)
-		fprintf(stdout, "%02X", init_ctx->key[i]);
-	fprintf(stdout, "\n");
-
-	fprintf(stdout, "iv =");
-	for (size_t i = 0; i < init_ctx->iv_len; i++)
-		fprintf(stdout, "%02X", init_ctx->iv[i]);
-	fprintf(stdout, "\n");
-}
-
 int ft_des_cbc(struct s_env *e) {
 	if (e->opts & FLAG_HELP)
 		return ft_usage(0, e->av[0], e->cmd);
