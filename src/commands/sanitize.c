@@ -42,6 +42,8 @@ static bool are_options_valid(const char *name, const struct s_option *opts, siz
 		}
 	}
 
+	free(names);
+
 	return res;
 }
 

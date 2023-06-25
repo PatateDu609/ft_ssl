@@ -46,14 +46,14 @@ function test_base64() {
 		printf "[\033[32;1mbase64\033[0m \033[38;5;%sm%s\033[0m]\t" "$test_label_color_code" "$test_label"
 		echo "Testing $label_tested_string"
 
-		mine=$(echo -ne "$tested_string" | ./ft_ssl base64 "$test_option")
-		openssl=$(echo -ne "$tested_string" | openssl base64 "$test_option")
+		mine="$(echo -ne "$tested_string" | $MY_COMMAND base64 "$test_option")"
+		openssl="$(echo -ne "$tested_string" | openssl base64 "$test_option")"
 	elif [ "$test_type" = "file" ]; then
 		printf "[\033[32;1mbase64\033[0m \033[38;5;%sm%s\033[0m]\t" "$test_label_color_code" "$test_label"
 		echo "Testing file $label_tested_string"
 
-		mine=$(./ft_ssl base64 "$test_option" -i "$tested_string")
-		openssl=$(openssl base64 "$test_option" -in "$tested_string")
+		mine="$($MY_COMMAND base64 "$test_option" -i "$tested_string")"
+		openssl="$(openssl base64 "$test_option" -in "$tested_string")"
 	else
 		echo "Unknown test type: $test_type"
 		exit 1

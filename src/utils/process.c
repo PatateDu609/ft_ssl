@@ -16,7 +16,7 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 	char *(hash_descriptor)(int))
 {
 	union u_input *input = ft_get_input(e, true);
-	char *hash;
+	char *hash = NULL;
 
 	if (e->opts & DIGEST_FLAG_s)
 		hash = hash_str(input->str);
@@ -37,6 +37,7 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 			else
 				printf("%s(%s)= %s\n", alg_pretty_name, input->files[i], hash);
 			free(hash);
+			hash = NULL;
 		}
 		goto end;
 	}
@@ -58,5 +59,6 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 		printf("%s(%s)= %s\n", alg_pretty_name, "stdin", hash);
 
 end:
+	free(hash);
 	free(input);
 }

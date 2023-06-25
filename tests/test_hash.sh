@@ -13,7 +13,7 @@ function test_hash() {
 	echo -ne "[\033[32;1m$2\033[0m]\t" ; echo "Testing '$1'"
 
 
-	mine=$(echo -ne "$1" | ./ft_ssl "$2" -q)
+	mine=$(echo -ne "$1" | $MY_COMMAND "$2" -q)
 	openssl=$(echo -ne "$1" | openssl "$2" -r | cut -d' ' -f1)
 
 	# check if command $2sum exists

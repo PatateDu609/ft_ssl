@@ -43,7 +43,6 @@ static int ft_base64_decode(struct s_env *e) {
 	FILE *out = e->out_file ? fopen(e->out_file, "w+") : stdout;
 	if (!out)
 		throwe(e->out_file, true);
-	setvbuf(out, NULL, _IONBF, 0);
 
 	uint8_t buf[1024];
 	size_t  len = sizeof buf / sizeof *buf;
@@ -52,6 +51,11 @@ static int ft_base64_decode(struct s_env *e) {
 		ret = stream_base64_dec(in, buf, len);
 		fwrite(buf, sizeof *buf, ret, out);
 	} while (!feof(in));
+
+	if (e->in_file)
+		fclose(in);
+	if (e->out_file)
+		fclose(out);
 
 	return 0;
 }
