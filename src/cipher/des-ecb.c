@@ -81,15 +81,11 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 	if (!in)
 		throwe(e->in_file, true);
 
-	fprintf(stderr, "in fd = %d\n", fileno(in));
-
 	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
 	}
-
-	fprintf(stderr, "out fd = %d\n", fileno(out));
 
 	stream_base64_reset_all();
 
