@@ -148,6 +148,7 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 
 struct cipher_ctx ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type, struct s_cipher_init_ctx init_ctx) {
 	struct cipher_ctx ctx;
+	memset(&ctx, 0, sizeof ctx);
 
 	ctx.algo          = setup_algo(cipher_type);
 

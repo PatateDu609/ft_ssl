@@ -31,15 +31,17 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 	size_t ret;
 	bool   padded = false;
 	while ((ret = fread(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, in))) {
-		if (ret != ctx->plaintext_len)
+		if (ret != ctx->plaintext_len) {
+			ctx->plaintext_len = ret;
 			padded = true;
+		}
 
 		CBC_encrypt(ctx);
 
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
 		else
-			fwrite(ctx->ciphertext, *ctx->ciphertext, ctx->ciphertext_len, out);
+			fwrite(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->ciphertext_len, out);
 
 		memset(ctx->plaintext, 0, ctx->plaintext_len);
 	}
@@ -67,23 +69,23 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 
 static void ft_des_cbc_dec(__unused struct s_env *e, __unused struct cipher_ctx *ctx) {}
 
-static void ft_print_init_ctx(struct s_cipher_init_ctx *init_ctx) {
+__unused static void ft_print_init_ctx(struct s_cipher_init_ctx *init_ctx) {
 	if (init_ctx->salt) {
-		fprintf(stderr, "salt=");
+		fprintf(stdout, "salt=");
 		for (size_t i = 0; i < init_ctx->salt_len; i++)
-			fprintf(stderr, "%02x", init_ctx->salt[i]);
-		fprintf(stderr, "\n");
+			fprintf(stdout, "%02X", init_ctx->salt[i]);
+		fprintf(stdout, "\n");
 	}
 
-	fprintf(stderr, "key=");
+	fprintf(stdout, "key=");
 	for (size_t i = 0; i < init_ctx->key_len; i++)
-		fprintf(stderr, "%02x", init_ctx->key[i]);
-	fprintf(stderr, "\n");
+		fprintf(stdout, "%02X", init_ctx->key[i]);
+	fprintf(stdout, "\n");
 
-	fprintf(stderr, "iv =");
+	fprintf(stdout, "iv =");
 	for (size_t i = 0; i < init_ctx->iv_len; i++)
-		fprintf(stderr, "%02x", init_ctx->iv[i]);
-	fprintf(stderr, "\n");
+		fprintf(stdout, "%02X", init_ctx->iv[i]);
+	fprintf(stdout, "\n");
 }
 
 int ft_des_cbc(struct s_env *e) {
@@ -97,7 +99,6 @@ int ft_des_cbc(struct s_env *e) {
 	init_ctx.salt_len = 8;
 
 	ft_init_cipher(e, &init_ctx);
-	ft_print_init_ctx(&init_ctx);
 
 	struct cipher_ctx ctx = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), BLOCK_CIPHER_DES, init_ctx);
 
