@@ -1,74 +1,67 @@
-#include "ft_ssl.h"
 #include "common.h"
 #include "defines.h"
+#include "error.h"
+#include "ft_ssl.h"
 #include "usage.h"
 
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
 
-static int ft_base64_encode(struct s_env *e)
-{
-	char *infile = e->in_file;
+static int ft_base64_encode(struct s_env *e) {
+	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	if (!in)
+		throwe(e->in_file, true);
 
-	char *res = base64_encode_file(infile);
-	if (res == NULL)
-	{
-		if (errno)
-			perror(infile);
-		return (1);
+	FILE *out = e->out_file ? fopen(e->out_file, "w+") : stdout;
+	if (!out)
+		throwe(e->out_file, true);
+
+	uint8_t buf[1024];
+	size_t  len = sizeof buf / sizeof *buf;
+	while (!feof(in)) {
+		size_t ret = fread(buf, sizeof *buf, len, in);
+
+		if (ret != len && ferror(in))
+			throwe("couldn't read from input file", true);
+
+		stream_base64_enc(out, buf, ret);
 	}
 
-	char *outfile = e->out_file;
+	stream_base64_enc_flush(out);
 
-	FILE *f = outfile ? fopen(outfile, "w") : stdout;
-	if (f == NULL)
-	{
-		perror(outfile);
-		return (1);
-	}
-	for (size_t i = 0, len = strlen(res); i < len; i += 64)
-		fprintf(f, "%.64s\n", res + i);
-
-	if (outfile)
-		fclose(f);
-	free(res);
+	if (e->in_file)
+		fclose(in);
+	if (e->out_file)
+		fclose(out);
 	return (0);
 }
 
-static int ft_base64_decode(struct s_env *e)
-{
-	char *infile = e->in_file;
-	size_t len;
+static int ft_base64_decode(struct s_env *e) {
+	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	if (!in)
+		throwe(e->in_file, true);
 
-	uint8_t *res = base64_decode_file(infile, &len);
-	if (res == NULL)
-	{
-		if (errno)
-			perror(infile);
-		return (1);
-	}
-	char *outfile = e->out_file;
+	FILE *out = e->out_file ? fopen(e->out_file, "w+") : stdout;
+	if (!out)
+		throwe(e->out_file, true);
+	setvbuf(out, NULL, _IONBF, 0);
 
-	FILE *f = outfile ? fopen(outfile, "w") : stdout;
-	if (f == NULL)
-	{
-		perror(outfile);
-		return (1);
-	}
-	fwrite(res, 1, len, f);
-	fflush(f);
-	if (outfile)
-		fclose(f);
-	free(res);
-	return (0);
+	uint8_t buf[1024];
+	size_t  len = sizeof buf / sizeof *buf;
+	size_t  ret;
+	do {
+		ret = stream_base64_dec(in, buf, len);
+		fwrite(buf, sizeof *buf, ret, out);
+	} while (!feof(in));
+
+	return 0;
 }
 
-int ft_base64(struct s_env *e)
-{
+int ft_base64(struct s_env *e) {
 	if (e->opts & FLAG_HELP)
 		return (ft_usage(0, e->cmd->name, e->cmd));
+
+	stream_base64_reset_all();
+
 	if (e->opts & BASE64_FLAG_d)
 		return (ft_base64_decode(e));
 	else

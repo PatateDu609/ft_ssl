@@ -18,7 +18,6 @@ BASENAME				?=	main					\
 							utils/usage				\
 							utils/process			\
 							utils/init_cipher		\
-							utils/bufferize_base64	\
 							help/cmd				\
 							commands/commands		\
 							commands/exec			\

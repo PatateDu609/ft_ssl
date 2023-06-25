@@ -4,10 +4,8 @@
 #include "utils.h"
 
 #include <ctype.h>
-#include <fcntl.h>
 #include <malloc.h>
 #include <string.h>
-#include <unistd.h>
 
 uint8_t *ft_str_to_hex(char *str, size_t target_len) {
 	uint8_t *hex = calloc(target_len, sizeof *hex);
@@ -50,7 +48,7 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 		if (in == NULL)
 			throwe(infile, true);
 
-		uint8_t buf[SALT_MAGIC_LEN + ctx->salt_len];// Openssl uses 16 here (MAGIC_LEN == 8 and
+		uint8_t buf[SALT_MAGIC_LEN + ctx->salt_len];// Openssl uses 16 here (MAGIC_LEN == 8 and SALT_LEN == 8)
 
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_dec(in, buf, sizeof buf);
@@ -75,7 +73,7 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 		return salt;
 	} else {
 		ctx->write_salt = true;
-		return get_random_bytes(ctx->salt_len);
+		return gensalt(ctx->salt_len);
 	}
 }
 
