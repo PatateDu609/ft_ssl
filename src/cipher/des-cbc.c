@@ -67,7 +67,52 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		fclose(out);
 }
 
-static void ft_des_cbc_dec(__unused struct s_env *e, __unused struct cipher_ctx *ctx) {}
+static void ft_des_cbc_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, struct cipher_ctx *ctx) {
+	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	if (!in)
+		throwe(e->in_file, true);
+
+	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	if (!out) {
+		fclose(in);
+		throwe(e->out_file, true);
+	}
+
+	stream_base64_reset_all();
+
+	if (!(e->opts & CIPHER_FLAG_salt)) {
+		off_t off = SALT_MAGIC_LEN + init_ctx->salt_len;
+		if (e->opts & CIPHER_FLAG_a)
+			stream_base64_seek(in, off);
+		else
+			fseek(in, off, SEEK_SET);
+	}
+
+	size_t   ret;
+
+	while (true) {
+		if (e->opts & CIPHER_FLAG_a) {
+			size_t res = stream_base64_dec(in, ctx->ciphertext, ctx->ciphertext_len);
+			if (res != 0 && res != 8)
+				throwe("bad decrypt", false);
+			if (res == 0)
+				break;
+		} else {
+			ret = fread(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->ciphertext_len, in);
+			if (ret != 0 && ret != 8)
+				throwe("bad decrypt", false);
+		}
+
+		CBC_decrypt(ctx);
+
+		fwrite(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, out);
+	}
+
+	if (e->in_file)
+		fclose(in);
+	if (e->out_file)
+		fclose(out);
+}
 
 __unused static void ft_print_init_ctx(struct s_cipher_init_ctx *init_ctx) {
 	if (init_ctx->salt) {
@@ -103,7 +148,7 @@ int ft_des_cbc(struct s_env *e) {
 	struct cipher_ctx ctx = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), BLOCK_CIPHER_DES, init_ctx);
 
 	if (e->opts & CIPHER_FLAG_d)
-		ft_des_cbc_dec(e, &ctx);
+		ft_des_cbc_dec(e, &init_ctx, &ctx);
 	else
 		ft_des_cbc_enc(e, &init_ctx, &ctx);
 
