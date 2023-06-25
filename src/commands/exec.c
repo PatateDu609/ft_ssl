@@ -1,11 +1,11 @@
+#include "commands.h"
 #include "ft_ssl.h"
 #include "internal.h"
-#include "commands.h"
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
-bool ft_check_params(struct s_env *env) {
+static bool ft_check_params(struct s_env *env) {
 	if (env->params[0] && !env->cmd->param_cnt) {
 		fprintf(stderr, "Extra arguments given.\n");
 		fprintf(stderr, "%s: Use -help for summary.\n", env->cmd->name);
@@ -44,6 +44,6 @@ int ft_exec(int ac, char **av) {
 			return commands[i].cmd(&env);
 		}
 	}
-	fprintf(stderr, "Invalid command '%s'; type \"help\" for a list.\n", av[1]);
-	return 1;
+	fprintf(stderr, "ft_ssl: Error: '%s' is an invalid command.\n", av[0]);
+	return ft_help(&env);
 }
