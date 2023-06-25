@@ -116,4 +116,4 @@ info_vars:
 			printf "$(BOLD)$(RED)""%-15s""$(CRESET)""%s""$(CRESET)\n", x[1], x[2]		\
 		}'
 
-.PHONY: all info info_vars test_colors clean fclean re
+.PHONY: all info info_vars test_colors clean fclean re $(SUBLIBS)

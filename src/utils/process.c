@@ -15,11 +15,10 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 	char *(hash_filename)(const char *),
 	char *(hash_descriptor)(int))
 {
-	bool use_str = true;
-	union u_input *input = ft_get_input(e, use_str);
+	union u_input *input = ft_get_input(e, true);
 	char *hash;
 
-	if (use_str && e->opts & FLAG_s)
+	if (e->opts & DIGEST_FLAG_s)
 		hash = hash_str(input->str);
 	else if (input->files[0])
 	{
@@ -31,9 +30,9 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 				fprintf(stderr, "ft_ssl: %s: %s\n", input->files[i], strerror(errno));
 				continue;
 			}
-			if (e->opts & FLAG_q)
+			if (e->opts & DIGEST_FLAG_q)
 				printf("%s\n", hash);
-			else if (e->opts & FLAG_r)
+			else if (e->opts & DIGEST_FLAG_r)
 				printf("%s *%s\n", hash, input->files[i]);
 			else
 				printf("%s(%s)= %s\n", alg_pretty_name, input->files[i], hash);
@@ -49,11 +48,11 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 		fprintf(stderr, "ft_ssl: %s\n", strerror(errno));
 		goto end;
 	}
-	if (e->opts & FLAG_q)
+	if (e->opts & DIGEST_FLAG_q)
 		printf("%s\n", hash);
-	else if (e->opts & FLAG_r && !(e->opts & FLAG_s))
+	else if (e->opts & DIGEST_FLAG_r && !(e->opts & DIGEST_FLAG_s))
 		printf("%s *%s\n", hash, "stdin");
-	else if (e->opts & FLAG_p && e->opts & FLAG_s && use_str)
+	else if (e->opts & DIGEST_FLAG_p && e->opts & DIGEST_FLAG_s )
 		printf("%s(%s)= %s\n", alg_pretty_name, input->str, hash);
 	else
 		printf("%s(%s)= %s\n", alg_pretty_name, "stdin", hash);

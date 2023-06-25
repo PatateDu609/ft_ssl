@@ -21,8 +21,10 @@ BASENAME				?=	main					\
 							utils/bufferize_base64	\
 							help/cmd				\
 							commands/commands		\
-							commands/options		\
+							commands/exec			\
+							commands/sanitize		\
 							commands/setup_env		\
+							commands/utils			\
 							cipher/base64			\
 							cipher/des-ecb			\
 							cipher/des-cbc			\

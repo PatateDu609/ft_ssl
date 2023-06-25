@@ -67,7 +67,7 @@ static int ft_base64_decode(struct s_env *e)
 
 int ft_base64(struct s_env *e)
 {
-	if (e->opts & BASE64_FLAG_HELP)
+	if (e->opts & FLAG_HELP)
 		return (ft_usage(0, e->cmd->name, e->cmd));
 	if (e->opts & BASE64_FLAG_d)
 		return (ft_base64_decode(e));

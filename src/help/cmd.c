@@ -29,7 +29,7 @@ int ft_help(__unused struct s_env *env)
 {
 	if (env)
 	{
-		if (env->opts & HELP_FLAG_HELP)
+		if (env->opts & FLAG_HELP)
 			return ft_usage(0, "help", env->cmd);
 
 		if (env->ac == 2)

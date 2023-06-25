@@ -20,9 +20,9 @@ include mkvars/SRC.mk
 include mkvars/rules.mk
 
 libcrypto42/libcrypto42.a:
-	$(MAKE) -C libcrypto42
+	$(MAKE) -s -C libcrypto42
 libft/libft.a:
-	$(MAKE) -C libft
+	$(MAKE) -s -C libft
 
 # File to be created if tests are needed.
 # include mkvars/tests.mk

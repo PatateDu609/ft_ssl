@@ -9,8 +9,8 @@ union u_input *ft_get_input(struct s_env *env, uint8_t use_str)
 	if (!input)
 		throwe("Allocation failed", true);
 
-	if (use_str && env->opts & MD5_FLAG_s)
-		input->str = get_value(env, MD5_FLAG_s);
+	if (use_str && env->opts & DIGEST_FLAG_s)
+		input->str = get_opt_value(env, DIGEST_FLAG_s);
 	else // if no string is given or its use is disabled duplicate params
 		input->files = env->params;
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void throwe(const char *msg, bool errno_msg)
+__noreturn void throwe(const char *msg, bool errno_msg)
 {
 	fprintf(stderr, "ft_ssl: %s.", msg);
 	if (errno_msg)

@@ -65,13 +65,14 @@ struct s_option {
 struct s_env;
 typedef int (*fn_command)(struct s_env *);
 struct s_command {
-	char               *name;     // command name
-	char               *alias;    // Alias to the command
-	enum e_command_type type;     // command type
-	struct s_option   **options;  // options of the command
-	fn_command          cmd;      // command callback
-	struct s_param     *params;   // parameters of the command
-	size_t              param_cnt;// number of parameters
+	char                 *name;      // command name
+	char                 *alias;     // Alias to the command
+	enum e_command_type   type;      // command type
+	struct s_option      *options;   // Array of all the available options for this command
+	size_t                opts_count;// Count of options in the corresponding array
+	fn_command            cmd;       // command callback
+	const struct s_param *params;    // parameters of the command
+	size_t                param_cnt; // number of parameters
 };
 
 union u_input {
@@ -80,18 +81,18 @@ union u_input {
 };
 
 struct s_env {
-	int               ac;
-	char            **av;
+	int                     ac;
+	char                  **av;
 
-	struct s_option **options;
-	size_t            option_cnt;
+	struct s_option        *options;
+	size_t                  option_cnt;
 
-	uint64_t          opts;    // active options
-	char            **params;  // parameters for the command
-	char             *out_file;// output file
-	char             *in_file; // input file
+	uint64_t                opts;    // active options
+	char                  **params;  // parameters for the command
+	char                   *out_file;// output file
+	char                   *in_file; // input file
 
-	struct s_command *cmd;     // command executed
+	const struct s_command *cmd;     // command executed
 };
 
 struct s_blocks {

@@ -5,6 +5,7 @@
 #include "structs.h"
 #include "error.h"
 #include "ft_stream.h"
+#include "cipher.h"
 
 #include <stdio.h>
 
@@ -27,6 +28,7 @@ void ft_process_hash(struct s_env *e, char *alg_pretty_name,
 	char *(hash_descriptor)(int));
 
 void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx);
+struct cipher_ctx ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type, struct s_cipher_init_ctx init_ctx);
 
 void stream_base64_enc(FILE *out, const uint8_t *buf, size_t len);
 void stream_base64_enc_flush(FILE *out);

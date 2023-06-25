@@ -7,6 +7,7 @@ AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
 AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments
 AlignTrailingComments: Always
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignOperands: Align
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
@@ -16,10 +17,12 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
-AllowShortLoopsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
@@ -44,6 +47,7 @@ ContinuationIndentWidth: 8
 IndentCaseLabels: true
 IndentPPDirectives: None
 IndentWidth: 4
+InsertTrailingCommas: Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
