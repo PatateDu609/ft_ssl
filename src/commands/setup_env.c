@@ -26,6 +26,11 @@ static void fill_env(struct s_env *env) {
 				}
 				env->options[j].value = env->av[++i];
 
+				if (env->options[j].chk)
+					if (!env->options[j].chk(env->options[j].value))
+						exit(1);
+
+
 				if (!strcmp(env->options[j].name, "o"))
 					env->out_file = env->options[j].value;
 				else if (!strcmp(env->options[j].name, "i"))

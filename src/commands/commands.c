@@ -85,6 +85,7 @@ static struct s_option base64_options[] = {
      .desc       = "Input file",
      .need_value = true,
      .val_desc   = "infile",
+     .chk        = check_path_readable,
 	 },
 	{
      .name       = "o",
@@ -92,7 +93,8 @@ static struct s_option base64_options[] = {
      .type       = OPT_TYPE_OUT,
      .desc       = "Output file",
      .need_value = true,
-     .val_desc   = "infile",
+     .val_desc   = "outfile",
+     .chk        = check_path_writable,
 	 },
 };
 
@@ -127,6 +129,7 @@ static struct s_option cipher_options[] = {
      .desc       = "Input file",
      .need_value = true,
      .val_desc   = "infile",
+     .chk        = check_path_readable,
 	 },
 	{
      .name       = "o",
@@ -134,7 +137,8 @@ static struct s_option cipher_options[] = {
      .type       = OPT_TYPE_OUT,
      .desc       = "Output file",
      .need_value = true,
-     .val_desc   = "infile",
+     .val_desc   = "outfile",
+     .chk        = check_path_writable,
 	 },
 	{
      .name       = "p",

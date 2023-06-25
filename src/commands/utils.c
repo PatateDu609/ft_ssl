@@ -4,7 +4,9 @@
 #include "internal.h"
 #include "string.h"
 
+#include <errno.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 char **get_cmd_names(enum e_command_type type) {
 	size_t i;
@@ -54,18 +56,44 @@ const struct s_command *get_cmd(const char *name) {
 	return NULL;
 }
 
-char *get_opt_value(struct s_env *env, uint64_t flag)
-{
-	size_t opts_count;
+char *get_opt_value(struct s_env *env, uint64_t flag) {
+	size_t                 opts_count;
 	const struct s_option *opts = get_options(env->cmd->name, &opts_count);
 
 	if (!opts)
 		throwe("Error while getting options", false);
 
-	for (size_t i = 0; i < opts_count; i++)
-	{
+	for (size_t i = 0; i < opts_count; i++) {
 		if (opts[i].flag == flag)
 			return opts[i].value;
 	}
 	return NULL;
+}
+
+bool check_path_readable(char *val) {
+	struct stat res;
+
+	if (stat(val, &res) == -1) {
+		fprintf(stderr, "error: %s: %s", val, strerror(errno));
+		return false;
+	}
+
+	if (access(val, R_OK))
+		throwe("couldn't open file in read access", false);
+
+	return true;
+}
+
+bool check_path_writable(char *val) {
+	struct stat res;
+
+	if (stat(val, &res) == -1) {
+		fprintf(stderr, "error: %s: %s", val, strerror(errno));
+		return false;
+	}
+
+	if (access(val, W_OK))
+		throwe("couldn't open file in write access", false);
+
+	return true;
 }

@@ -7,13 +7,15 @@
 #include <stdio.h>
 
 static int ft_base64_encode(struct s_env *e) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w+") : stdout;
-	if (!out)
+	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	if (!out) {
+		fclose(in);
 		throwe(e->out_file, true);
+	}
 
 	uint8_t buf[1024];
 	size_t  len = sizeof buf / sizeof *buf;
@@ -36,13 +38,15 @@ static int ft_base64_encode(struct s_env *e) {
 }
 
 static int ft_base64_decode(struct s_env *e) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w+") : stdout;
-	if (!out)
+	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	if (!out) {
+		fclose(in);
 		throwe(e->out_file, true);
+	}
 
 	uint8_t buf[1024];
 	size_t  len = sizeof buf / sizeof *buf;

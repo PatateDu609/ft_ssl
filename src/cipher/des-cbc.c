@@ -8,7 +8,7 @@
 #include <string.h>
 
 static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, struct cipher_ctx *ctx) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
@@ -33,7 +33,7 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 	while ((ret = fread(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, in))) {
 		if (ret != ctx->plaintext_len) {
 			ctx->plaintext_len = ret;
-			padded = true;
+			padded             = true;
 		}
 
 		CBC_encrypt(ctx);
@@ -45,6 +45,13 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 
 		memset(ctx->plaintext, 0, ctx->plaintext_len);
 	}
+	if (ferror(in))
+	{
+		if (e->opts & CIPHER_FLAG_a)
+			stream_base64_enc_flush(out);
+		throwe("couldn't read from stream", true);
+	}
+
 	if (!padded) {
 		ctx->plaintext_len = 0;
 		free(ctx->plaintext);
@@ -68,15 +75,19 @@ static void ft_des_cbc_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 }
 
 static void ft_des_cbc_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, struct cipher_ctx *ctx) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r+") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
+
+	fprintf(stderr, "in fd = %d\n", fileno(in));
 
 	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
 	}
+
+	fprintf(stderr, "out fd = %d\n", fileno(out));
 
 	stream_base64_reset_all();
 
@@ -88,7 +99,7 @@ static void ft_des_cbc_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 			fseek(in, off, SEEK_SET);
 	}
 
-	size_t   ret;
+	size_t ret;
 
 	while (true) {
 		if (e->opts & CIPHER_FLAG_a) {

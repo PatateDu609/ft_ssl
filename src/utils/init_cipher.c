@@ -44,7 +44,7 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 
 	if (e->opts & CIPHER_FLAG_d) {
 		char *infile = e->in_file;
-		FILE *in     = infile ? fopen(infile, "r+") : stdin;
+		FILE *in     = infile ? fopen(infile, "r") : stdin;
 		if (in == NULL)
 			throwe(infile, true);
 
@@ -64,7 +64,8 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 			}
 		}
 		// File not needed anymore (since we have what we wanted)
-		fclose(in);
+        if (infile)
+		    fclose(in);
 
 		if (strncmp(SALT_MAGIC, (char *)buf, SALT_MAGIC_LEN) != 0)
 			throwe("bad magic number", false);

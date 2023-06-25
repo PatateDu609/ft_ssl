@@ -7,7 +7,7 @@
 
 #include "ft_math.h"
 
-typedef int (*fn_chk_opt_arg)(char *);
+typedef bool (*fn_chk_opt_arg)(char *);
 
 enum e_command_type {
 	STANDARD,
