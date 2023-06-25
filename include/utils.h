@@ -33,5 +33,7 @@ struct cipher_ctx ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type,
 void stream_base64_enc(FILE *out, const uint8_t *buf, size_t len);
 void stream_base64_enc_flush(FILE *out);
 size_t stream_base64_dec(FILE *in, uint8_t *buf, size_t len);
+void stream_base64_seek(FILE *in, off_t off);
+void stream_base64_reset_all();
 
 #endif

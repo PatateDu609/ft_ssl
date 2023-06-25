@@ -39,7 +39,8 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 	while ((ret = fread(&blk, 1, sizeof blk, in))) {
 		uint8_t *ptr = (uint8_t *) (&blk);
 		if (ret != sizeof blk) {
-			for (size_t i = ret; i < sizeof blk; i++) ptr[i] = sizeof blk - ret;
+			for (size_t i = ret; i < sizeof blk; i++)
+				ptr[i] = sizeof blk - ret;
 			padded = true;
 		}
 
@@ -88,8 +89,14 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 		throwe(e->out_file, true);
 	}
 
+	stream_base64_reset_all();
+
 	if (!(e->opts & CIPHER_FLAG_salt)) {
-		fseek(in, SALT_MAGIC_LEN + ctx->salt_len, SEEK_SET);
+		off_t off = SALT_MAGIC_LEN + ctx->salt_len;
+		if (e->opts & CIPHER_FLAG_a)
+			stream_base64_seek(in, off);
+		else
+			fseek(in, off, SEEK_SET);
 	}
 
 	uint64_t key;

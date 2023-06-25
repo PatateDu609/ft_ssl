@@ -46,18 +46,29 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 
 	if (e->opts & CIPHER_FLAG_d) {
 		char *infile = e->in_file;
-		int   fd     = infile ? open(infile, O_RDONLY) : STDIN_FILENO;
-		if (fd == -1) {
-			char msg[512];
-			snprintf(msg, sizeof msg, "Can't open %s", infile);
-			throwe(msg, true);
+		FILE *in     = infile ? fopen(infile, "r+") : stdin;
+		if (in == NULL)
+			throwe(infile, true);
+
+		uint8_t buf[SALT_MAGIC_LEN + ctx->salt_len];// Openssl uses 16 here (MAGIC_LEN == 8 and
+
+		if (e->opts & CIPHER_FLAG_a)
+			stream_base64_dec(in, buf, sizeof buf);
+		else {
+			size_t ret = fread(buf, sizeof *buf, sizeof buf / sizeof *buf, in);
+			if (ret != sizeof buf) {
+				if (ferror(in))
+					throwe("error reading input file", true);
+				else if (feof(in))
+					throwe("error reading input file: got EOF", false);
+				else
+					throwe("error reading input file: unknown error", false);
+			}
 		}
-		char    buf[SALT_MAGIC_LEN + ctx->salt_len];// Openssl uses 16 here
-		ssize_t ret = read(fd, buf, sizeof buf);
-		close(fd);                                  // File not needed anymore (since we have what we wanted)
-		if (ret != (ssize_t) sizeof buf)
-			throwe("error reading input file", ret == -1);
-		if (strncmp(SALT_MAGIC, buf, SALT_MAGIC_LEN) != 0)
+		// File not needed anymore (since we have what we wanted)
+		fclose(in);
+
+		if (strncmp(SALT_MAGIC, (char *)buf, SALT_MAGIC_LEN) != 0)
 			throwe("bad magic number", false);
 		uint8_t *salt = malloc(ctx->salt_len);
 		memcpy(salt, buf + SALT_MAGIC_LEN, ctx->salt_len);
@@ -105,8 +116,8 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 
 	ctx->write_salt = false;
 
-	ctx->salt       = ft_init_salt(e, ctx, ukey);
 	char *pass      = ft_init_pass(e, ukey);
+	ctx->salt       = ft_init_salt(e, ctx, ukey);
 
 	ctx->iv         = NULL;
 	if (!ctx->need_iv)
@@ -115,6 +126,7 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 	uint8_t *keystream = NULL;
 	if (!ukey) {
 		struct pbkdf2_hmac_req req;
+
 		req.algo         = HMAC_SHA2_256;
 		req.dklen        = ctx->key_len + ctx->iv_len;
 		req.salt         = ctx->salt;
@@ -126,8 +138,10 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 		keystream        = pbkdf2(req);
 		ctx->key         = malloc(ctx->key_len * sizeof *ctx->key);
 		memcpy(ctx->key, keystream, ctx->key_len);
-	} else
-		ctx->key = ft_str_to_hex(ukey, ctx->key_len);
+	} else {
+		ctx->key        = ft_str_to_hex(ukey, ctx->key_len);
+		ctx->write_salt = false;
+	}
 
 	if (ctx->need_iv) {
 		char *uiv = get_opt_value(e, CIPHER_FLAG_v);
@@ -142,8 +156,8 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 		}
 	}
 
-	free(pass);
 	free(keystream);
+	free(pass);
 }
 
 struct cipher_ctx ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type, struct s_cipher_init_ctx init_ctx) {

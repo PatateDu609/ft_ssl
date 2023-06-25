@@ -83,3 +83,19 @@ size_t stream_base64_dec(FILE *in, uint8_t *buf, size_t len) {
 
 	return result;
 }
+
+void stream_base64_seek(FILE *in, off_t off) {
+	if (feof(in))
+		return;
+
+	uint8_t *buf = calloc(off, sizeof *buf);
+
+	stream_base64_dec(in, buf, off);
+
+	free(buf);
+}
+
+void stream_base64_reset_all() {
+	memset(&decoder, 0, sizeof decoder);
+	memset(&encoder, 0, sizeof encoder);
+}
