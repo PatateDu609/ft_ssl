@@ -4,7 +4,6 @@
 #include "utils.h"
 
 #include <ctype.h>
-#include <malloc.h>
 #include <string.h>
 
 uint8_t *ft_str_to_hex(char *str, size_t target_len) {
@@ -32,12 +31,12 @@ uint8_t *ft_str_to_hex(char *str, size_t target_len) {
 	return hex;
 }
 
-static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, const char *ukey) {
+static uint8_t *ft_init_salt(struct s_env *e, struct salted_cipher_ctx *salted_ctx, const char *ukey) {
 	if (e->opts & CIPHER_FLAG_salt) {
 		char *usalt = get_opt_value(e, CIPHER_FLAG_salt);// User salt is ignored if decrypt mode
 
 		if (usalt)
-			return ft_str_to_hex(usalt, ctx->salt_len);
+			return ft_str_to_hex(usalt, salted_ctx->salt_len);
 		if (ukey)
 			return NULL;
 	}
@@ -48,7 +47,7 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 		if (in == NULL)
 			throwe(infile, true);
 
-		uint8_t buf[SALT_MAGIC_LEN + ctx->salt_len];// Openssl uses 16 here (MAGIC_LEN == 8 and SALT_LEN == 8)
+		uint8_t buf[SALT_MAGIC_LEN + salted_ctx->salt_len];// Openssl uses 16 here (MAGIC_LEN == 8 and SALT_LEN == 8)
 
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_dec(in, buf, sizeof buf);
@@ -64,17 +63,17 @@ static uint8_t *ft_init_salt(struct s_env *e, struct s_cipher_init_ctx *ctx, con
 			}
 		}
 		// File not needed anymore (since we have what we wanted)
-        if (infile)
-		    fclose(in);
+		if (infile)
+			fclose(in);
 
-		if (strncmp(SALT_MAGIC, (char *)buf, SALT_MAGIC_LEN) != 0)
+		if (strncmp(SALT_MAGIC, (char *) buf, SALT_MAGIC_LEN) != 0)
 			throwe("bad magic number", false);
-		uint8_t *salt = malloc(ctx->salt_len);
-		memcpy(salt, buf + SALT_MAGIC_LEN, ctx->salt_len);
+		uint8_t *salt = malloc(salted_ctx->salt_len);
+		memcpy(salt, buf + SALT_MAGIC_LEN, salted_ctx->salt_len);
 		return salt;
 	} else {
-		ctx->write_salt = true;
-		return gensalt(ctx->salt_len);
+		salted_ctx->write_salt = true;
+		return gensalt(salted_ctx->salt_len);
 	}
 }
 
@@ -110,17 +109,41 @@ static char *ft_init_pass(struct s_env *e, const char *ukey) {
 	return first;
 }
 
-void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
-	char *ukey      = get_opt_value(e, CIPHER_FLAG_k);
+static uint8_t *ft_init_initial_vector(struct s_env      *e,
+                                       struct cipher_ctx *ctx,
+                                       const char        *ukey,
+                                       const uint8_t     *keystream,
+                                       size_t             len) {
+	char *uiv = get_opt_value(e, CIPHER_FLAG_v);
 
-	ctx->write_salt = false;
+	if (!uiv && ukey)
+		throwe("iv false", false);
+	if (uiv)
+		return ft_str_to_hex(uiv, ctx->iv_len);
+	else {
+		uint8_t *iv = malloc(len * sizeof *iv);
+		if (!iv)
+			throwe("malloc", true);
 
-	char *pass      = ft_init_pass(e, ukey);
-	ctx->salt       = ft_init_salt(e, ctx, ukey);
+		memcpy(iv, keystream + ctx->key_len, len);
 
-	ctx->iv         = NULL;
-	if (!ctx->need_iv)
-		ctx->iv_len = 0;
+		return iv;
+	}
+}
+
+struct salted_cipher_ctx *ft_init_cipher(struct s_env *e, struct cipher_ctx *ctx) {
+	struct salted_cipher_ctx *salted = calloc(1, sizeof *salted);
+	if (!salted)
+		return NULL;
+
+	salted->ctx        = ctx;
+	salted->salt_len   = SALT_LEN;
+	salted->write_salt = false;
+
+	char *ukey         = get_opt_value(e, CIPHER_FLAG_k);
+	char *pass         = ft_init_pass(e, ukey);
+
+	salted->salt       = ft_init_salt(e, salted, ukey);
 
 	uint8_t *keystream = NULL;
 	if (!ukey) {
@@ -128,8 +151,8 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 
 		req.algo         = HMAC_SHA2_256;
 		req.dklen        = ctx->key_len + ctx->iv_len;
-		req.salt         = ctx->salt;
-		req.salt_len     = ctx->salt_len;
+		req.salt         = salted->salt;
+		req.salt_len     = salted->salt_len;
 		req.iterations   = PBKDF_ITER_COUNT;
 		req.password     = (uint8_t *) pass;
 		req.password_len = strlen(pass);
@@ -138,45 +161,31 @@ void ft_init_cipher(struct s_env *e, struct s_cipher_init_ctx *ctx) {
 		ctx->key         = malloc(ctx->key_len * sizeof *ctx->key);
 		memcpy(ctx->key, keystream, ctx->key_len);
 	} else {
-		ctx->key        = ft_str_to_hex(ukey, ctx->key_len);
-		ctx->write_salt = false;
+		ctx->key           = ft_str_to_hex(ukey, ctx->key_len);
+		salted->write_salt = false;
 	}
 
-	if (ctx->need_iv) {
-		char *uiv = get_opt_value(e, CIPHER_FLAG_v);
-
-		if (!uiv && ukey)
-			throwe("iv false", false);
-		if (uiv)
-			ctx->iv = ft_str_to_hex(uiv, ctx->iv_len);
-		else {
-			ctx->iv = malloc(ctx->iv_len * sizeof *ctx->iv);
-			memcpy(ctx->iv, keystream + ctx->key_len, ctx->iv_len);
-		}
-	}
+	if (ctx->iv_len)
+		ctx->iv = ft_init_initial_vector(e, ctx, ukey, keystream, ctx->iv_len);
+	if (ctx->nonce_len)
+		ctx->nonce = ft_init_initial_vector(e, ctx, ukey, keystream, ctx->nonce_len);
 
 	free(keystream);
 	free(pass);
+
+	return salted;
 }
 
-struct cipher_ctx ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type, struct s_cipher_init_ctx init_ctx) {
-	struct cipher_ctx ctx;
-	memset(&ctx, 0, sizeof ctx);
+struct cipher_ctx *ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type) {
+	struct cipher_ctx *ctx = new_cipher_context(cipher_type);
 
-	ctx.algo          = setup_algo(cipher_type);
-
-	ctx.key_len       = init_ctx.key_len;
-	ctx.key           = init_ctx.key;
-	ctx.iv_len        = init_ctx.iv_len;
-	ctx.iv            = init_ctx.iv;
-
-	ctx.plaintext_len = ctx.ciphertext_len = ctx.algo.blk_size;
+	ctx->plaintext_len = ctx->ciphertext_len = ctx->algo.blk_size;
 
 	if (is_enc) {
-		if ((ctx.plaintext = calloc(ctx.plaintext_len, sizeof *ctx.plaintext)) == NULL)
+		if ((ctx->plaintext = calloc(ctx->plaintext_len, sizeof *ctx->plaintext)) == NULL)
 			throwe("couldn't allocate memory", true);
 	} else {
-		if ((ctx.ciphertext = calloc(ctx.ciphertext_len, sizeof *ctx.ciphertext)) == NULL)
+		if ((ctx->ciphertext = calloc(ctx->ciphertext_len, sizeof *ctx->ciphertext)) == NULL)
 			throwe("couldn't allocate memory", true);
 	}
 

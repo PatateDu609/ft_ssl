@@ -4,11 +4,25 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef __unused
 #define __unused           __attribute__((unused))
+#endif
+
+#ifndef __constructor
 #define __constructor(pri) __attribute__((constructor(pri + 100)))
+#endif
+
+#ifndef __destructor
 #define __destructor(pri)  __attribute__((destructor(pri + 100)))
+#endif
+
+#ifndef __unused_result
 #define __unused_result    __attribute__((warn_unused_result))
+#endif
+
+#ifndef __deprecated
 #define __deprecated(msg)  __attribute__((deprecated(msg)))
+#endif
 
 #define MAX(a, b)          ((a) > (b) ? (a) : (b))
 
@@ -40,6 +54,7 @@
 
 #define SALT_MAGIC       "Salted__"
 #define SALT_MAGIC_LEN   8
+#define SALT_LEN         8
 
 // Command flag opt for ciphering
 #define PBKDF_ITER_COUNT 10000

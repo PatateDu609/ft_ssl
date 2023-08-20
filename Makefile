@@ -8,7 +8,11 @@ COLORS							:=	256
 DEBUG							:=	1
 RELEASE							:=	0
 LDFLAGS							:=	-Llibcrypto42 -Llibft		\
-									-lft -lcrypto42 -lm -lbsd
+									-lft -lcrypto42 -lm
+
+ifneq ($(shell uname),Darwin)
+	LDFLAGS						+=	-lbsd
+endif
 
 SUBLIBS							:=	libcrypto42/libcrypto42.a libft/libft.a
 

@@ -2,8 +2,12 @@
 #include "commands.h"
 
 #include <stdio.h>
-#include <stdio_ext.h>
 #include <string.h>
+
+#if __has_include(<stdio_ext.h>)
+#include <stdio_ext.h>
+#define HAS_STDIO_EXT
+#endif
 
 static size_t get_longest(const struct s_command *cmd) {
 	static size_t longest = 0;// Avoid useless re-computation
@@ -57,8 +61,13 @@ static void ft_print(const struct s_option *options, size_t opts_len, enum e_opt
 	if (printed) {
 		fprintf(stderr, "\n");
 		fflush(stderr);
-	} else
+	} else {
+#ifdef HAS_STDIO_EXT
 		__fpurge(stderr);// Print nothing if no options found
+#else
+		fpurge(stderr);// Print nothing if no options found
+#endif
+	}
 }
 
 static void print_parameters(const struct s_command *cmd) {
@@ -82,8 +91,13 @@ static void print_parameters(const struct s_command *cmd) {
 	if (printed) {
 		fprintf(stderr, "\n");
 		fflush(stderr);
-	} else
+	} else {
+#ifdef HAS_STDIO_EXT
 		__fpurge(stderr);// Print nothing if no options found
+#else
+		fpurge(stderr);// Print nothing if no options found
+#endif
+	}
 }
 
 void ft_usage_line(const struct s_command *cmd, char *name) {
@@ -144,6 +158,6 @@ int ft_usage(int err, char *name, const struct s_command *cmd) {
 
 	setvbuf(stderr, NULL, _IONBF, 0);// No buffering
 
-	get_longest(cmd);                // Reset
+	get_longest(cmd);// Reset
 	return err;
 }

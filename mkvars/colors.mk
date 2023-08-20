@@ -9,25 +9,34 @@ NORMAL			=	\033[21;22;24;23m
 TRESET			=	\033[0m
 
 ifeq ($(COLORS),256)
-	CRESET		=	\033[38;5;248m
-	RED			=	\033[38;5;160m
-	GREEN		=	\033[38;5;46m
-	YELLOW		=	\033[38;5;190m
-	BLUE		=	\033[38;5;63m
-	MAGENTA		=	\033[38;5;126m
-	CYAN		=	\033[38;5;86m
+	CRESET			=	\033[38;5;248m
+	RED				=	\033[38;5;160m
+	GREEN			=	\033[38;5;46m
+	GREEN_42		=	\033[38;5;42m
+	GREEN_79		=	\033[38;5;79m
+	YELLOW			=	\033[38;5;190m
+	ORANGE			=	\033[38;5;202m
+	BLUE			=	\033[38;5;63m
+	MAGENTA			=	\033[38;5;126m
+	MAGENTA_129		=	\033[38;5;129m
+	CYAN			=	\033[38;5;86m
 
 else ifeq ($(COLORS),16)
-	CRESET		=	\033[0m
-	RED			=	\033[31m
-	GREEN		=	\033[32m
-	YELLOW		=	\033[33m
-	BLUE		=	\033[34m
-	MAGENTA		=	\033[35m
-	CYAN		=	\033[36m
+	CRESET			=	\033[0m
+	RED				=	\033[31m
+	GREEN			=	\033[32m
+	GREEN_42		:=	$(GREEN)
+	GREEN_79		:=	$(GREEN)
+	YELLOW			=	\033[33m
+	ORANGE			:=	$(YELLOW)
+	BLUE			=	\033[34m
+	MAGENTA			=	\033[35m
+	MAGENTA_129		:=	$(MAGENTA)
+	CYAN			=	\033[36m
 endif
 
 endif
 
 GREATER			=	⪢
 BIGGREATER		=	⫸
+DOUBLEGREATER	=	≫

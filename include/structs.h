@@ -109,17 +109,4 @@ struct s_msg {
 	size_t   block_size;// true block size in bytes
 };
 
-struct s_cipher_init_ctx {
-	bool     need_iv;
-	uint8_t *iv;
-	size_t   iv_len;
-
-	uint8_t *key;
-	size_t   key_len;
-
-	bool     write_salt;
-	uint8_t *salt;
-	size_t   salt_len;
-};
-
 #endif

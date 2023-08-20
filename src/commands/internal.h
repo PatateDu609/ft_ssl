@@ -3,7 +3,7 @@
 
 #include "structs.h"
 
-#define NB_COMMANDS 11
+#define NB_COMMANDS 44
 
 extern const struct s_command commands[NB_COMMANDS];
 

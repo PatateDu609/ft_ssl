@@ -16,27 +16,38 @@ endif
 
 all:							$(NAME)
 
-$(PATH_OBJ)/%.o:			$(PATH_SRC)/%$(LANGEXTENSION) mkvars/*.mk Makefile
+$(PATH_OBJ)/%.o:			$(PATH_SRC)/%.c
 	$(MKDIR) $(dir $@)
-	$(ECHO) -e " $(BOLD)$(BLUE)$(GREATER)$(NORMAL)   Compiling $(ITALIC)$(subst $(PATH_SRC)/,,$<)$(TRESET)"
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+
+	$(PRINTF) " $(BOLD)$(if $(filter $(shell echo $< | grep 'tests/' ; echo $$?),1),$(if $(filter $(shell echo $< | grep -E '\.test\.c' ; echo $$?),0),$(MAGENTA),$(BLUE)),$(CYAN))"
+	$(PRINTF) "$(GREATER)$(NORMAL)   Compiling $(ITALIC)$(subst $(PATH_SRC)/,,$<)$(TRESET)\n"
+
+	$(CC) $(CFLAGS) -c -MMD $< -o $@
+
+$(PATH_OBJ)/%.o:			$(PATH_SRC)/%.cc
+	$(MKDIR) $(dir $@)
+
+	$(PRINTF) " $(BOLD)$(if $(filter $(shell echo $< | grep 'tests/' ; echo $$?),1),$(if $(filter $(shell echo $< | grep -E '\.test\.c' ; echo $$?),0),$(MAGENTA),$(BLUE)),$(CYAN))"
+	$(PRINTF) "$(GREATER)$(NORMAL)   Compiling $(ITALIC)$(subst $(PATH_SRC)/,,$<)$(TRESET)\n"
+
+	$(CXX) $(CXXFLAGS) -c -MMD $< -o $@
 
 -include $(DEPS)
 
 $(NAME):						$(OBJS) $(SUBLIBS)
 ifeq ($(TYPE),exec)
 
-	$(ECHO) -e " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Linking $(ITALIC)$(subst $(PATH_OBJ)/,,$@)$(TRESET)"
+	$(PRINTF) " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Linking $(ITALIC)$(subst $(PATH_OBJ)/,,$@)$(TRESET)\n"
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 else ifeq ($(TYPE),static)
 
-	$(ECHO) -e " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Creating $(ITALIC)$(subst $(PATH_LIB)/,,$@)$(TRESET)"
+	$(PRINTF) " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Creating $(ITALIC)$(subst $(PATH_LIB)/,,$@)$(TRESET)\n"
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 else ifeq ($(TYPE),shared)
 
-	$(ECHO) -e " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Creating $(ITALIC)$(subst $(PATH_LIB)/,,$@)$(TRESET)"
+	$(PRINTF) " $(BOLD)$(GREEN)$(BIGGREATER)$(NORMAL)   Creating $(ITALIC)$(subst $(PATH_LIB)/,,$@)$(TRESET)\n"
 	$(CC) -shared -o $@ $(OBJS) $(LDFLAGS)
 
 endif
@@ -54,66 +65,68 @@ clean:
 info:							test_colors info_vars
 
 test_colors:
-	$(ECHO) "Testing colors..."
-	$(ECHO) -e "$(RED)RED$(TRESET)"
-	$(ECHO) -e "$(GREEN)GREEN$(TRESET)"
-	$(ECHO) -e "$(YELLOW)YELLOW$(TRESET)"
-	$(ECHO) -e "$(BLUE)BLUE$(TRESET)"
-	$(ECHO) -e "$(MAGENTA)MAGENTA$(TRESET)"
-	$(ECHO) -e "$(CYAN)CYAN$(TRESET)"
+	$(PRINTF) "Testing colors...\n"
+	$(PRINTF) "$(RED)RED$(TRESET)\n"
+	$(PRINTF) "$(GREEN)GREEN$(TRESET)\n"
+	$(PRINTF) "$(GREEN_42)GREEN_42$(TRESET)\n"
+	$(PRINTF) "$(GREEN_79)GREEN_79$(TRESET)\n"
+	$(PRINTF) "$(YELLOW)YELLOW$(TRESET)\n"
+	$(PRINTF) "$(ORANGE)ORANGE$(TRESET)\n"
+	$(PRINTF) "$(BLUE)BLUE$(TRESET)\n"
+	$(PRINTF) "$(MAGENTA)MAGENTA$(TRESET)\n"
+	$(PRINTF) "$(MAGENTA_129)MAGENTA_129$(TRESET)\n"
+	$(PRINTF) "$(CYAN)CYAN$(TRESET)\n"
 
-	$(ECHO) -e "$(UNDERLINE)UNDERLINE$(TRESET)"
-	$(ECHO) -e "$(BOLD)BOLD$(TRESET)\n"
+	$(PRINTF) "$(UNDERLINE)UNDERLINE$(TRESET)\n"
+	$(PRINTF) "$(BOLD)BOLD$(TRESET)\n\n"
 
 
 info_vars:
-	$(ECHO) "Displaying variables..."
-	@($(NECHO) "CC:$(CC)";																\
-	$(NECHO) "AS:$(AS)";																\
-	$(NECHO) "AR:$(AR)";																\
-	$(NECHO) "RM:$(RM)";																\
-	$(NECHO) "MKDIR:$(MKDIR)";															\
-	$(NECHO) "ECHO:$(ECHO)";															\
-	$(NECHO);																			\
+	$(PRINTF) "Displaying variables...\n"
+	@($(NPRINTF) "CC:$(CC)\n";																\
+	$(NPRINTF) "CXX:$(CXX)\n";																\
+	$(NPRINTF) "AS:$(AS)\n";																\
+	$(NPRINTF) "AR:$(AR)\n";																\
+	$(NPRINTF) "RM:$(RM)\n";																\
+	$(NPRINTF) "MKDIR:$(MKDIR)\n";															\
+	$(NPRINTF) "PRINTF:$(PRINTF)\n\n";															\
 	\
-	$(NECHO) "NCC:$(NCC)";																\
-	$(NECHO) "NAS:$(NAS)";																\
-	$(NECHO) "NAR:$(NAR)";																\
-	$(NECHO) "NRM:$(NRM)";																\
-	$(NECHO) "NMKDIR:$(NMKDIR)";														\
-	$(NECHO) "NECHO:$(NECHO)";															\
-	$(NECHO);																			\
+	$(NPRINTF) "NCC:$(NCC)\n";																\
+	$(NPRINTF) "NCXX:$(NCXX)\n";																\
+	$(NPRINTF) "NAS:$(NAS)\n";																\
+	$(NPRINTF) "NAR:$(NAR)\n";																\
+	$(NPRINTF) "NRM:$(NRM)\n";																\
+	$(NPRINTF) "NMKDIR:$(NMKDIR)\n";														\
+	$(NPRINTF) "NPRINTF:$(NPRINTF)\n\n";															\
 	\
-	$(NECHO) "PATH_SRC:$(PATH_SRC)";													\
-	$(NECHO) "PATH_OBJ:$(PATH_OBJ)";													\
-	$(NECHO) "PATH_LIB:$(PATH_LIB)";													\
-	$(NECHO) "PATH_INC:$(PATH_INC)";													\
-	$(NECHO);																			\
+	$(NPRINTF) "PATH_SRC:$(PATH_SRC)\n";													\
+	$(NPRINTF) "PATH_OBJ:$(PATH_OBJ)\n";													\
+	$(NPRINTF) "PATH_LIB:$(PATH_LIB)\n";													\
+	$(NPRINTF) "PATH_INC:$(PATH_INC)\n\n";													\
 	\
-	$(NECHO) "CFLAGS:$(CFLAGS)";														\
-	$(NECHO) "ARFLAGS:$(ARFLAGS)";														\
-	$(NECHO) "ASFLAGS:$(ASFLAGS)";														\
-	$(NECHO);																			\
+	$(NPRINTF) "CFLAGS:$(CFLAGS)\n";														\
+	$(NPRINTF) "CXXFLAGS:$(CXXFLAGS)\n";														\
+	$(NPRINTF) "ARFLAGS:$(ARFLAGS)\n";														\
+	$(NPRINTF) "ASFLAGS:$(ASFLAGS)\n\n";														\
 	\
-	$(NECHO) "NAME:$(NAME)";															\
-	$(NECHO) "TYPE:$(TYPE)";															\
-	$(NECHO) "LANGUAGE:$(LANGUAGE)";													\
-	$(NECHO) "COLORS:$(COLORS)";														\
-	$(NECHO);																			\
+	$(NPRINTF) "NAME:$(NAME)\n";															\
+	$(NPRINTF) "TYPE:$(TYPE)\n";															\
+	$(NPRINTF) "LANGUAGE:$(LANGUAGE)\n";													\
+	$(NPRINTF) "COLORS:$(COLORS)\n\n";														\
 	\
-	$(NECHO) "VERBOSE:$(VERBOSE)";														\
-	$(NECHO) "DEBUG:$(DEBUG)";															\
-	$(NECHO) "RELEASE:$(RELEASE)";														\
-	$(NECHO);																			\
+	$(NPRINTF) "VERBOSE:$(VERBOSE)\n";														\
+	$(NPRINTF) "DEBUG:$(DEBUG)\n";															\
+	$(NPRINTF) "RELEASE:$(RELEASE)\n\n";														\
 	\
-	$(NECHO) "SRC:$(SRC)";																\
-	$(NECHO) "OBJS:$(OBJS)";															\
-	$(NECHO) "DEPS:$(DEPS)"																\
+	$(NPRINTF) "SRC:$(SRC)\n";																\
+	$(NPRINTF) "OBJS:$(OBJS)\n";															\
+	$(NPRINTF) "DEPS:$(DEPS)\n"																\
 	) | awk '																			\
 		{																				\
 			input = $$0;																\
 			split(input, x, ":");														\
 			printf "$(BOLD)$(RED)""%-15s""$(CRESET)""%s""$(CRESET)\n", x[1], x[2]		\
 		}'
+	$(PRINTF) "$(TRESET)"
 
 .PHONY: all info info_vars test_colors clean fclean re $(SUBLIBS)

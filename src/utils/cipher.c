@@ -1,15 +1,20 @@
-#include "cipher.h"
-#include "common.h"
-#include "defines.h"
-#include "ft_ssl.h"
 #include "usage.h"
 #include "utils.h"
+#include <cipher.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+void write_salt(struct s_env *e, FILE *out, struct salted_cipher_ctx *salted_ctx) {
+	if (salted_ctx->write_salt) {
+		if (e->opts & CIPHER_FLAG_a) {
+			stream_base64_enc(out, (uint8_t *) SALT_MAGIC, SALT_MAGIC_LEN);
+			stream_base64_enc(out, salted_ctx->salt, salted_ctx->salt_len);
+		} else {
+			fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
+			fwrite(salted_ctx->salt, 1, salted_ctx->salt_len, out);
+		}
+	}
+}
 
-static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, struct cipher_ctx *ctx) {
+static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx, struct cipher_ctx *ctx) {
 	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
@@ -20,15 +25,8 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		throwe(e->out_file, true);
 	}
 
-	if (init_ctx->write_salt) {
-		if (e->opts & CIPHER_FLAG_a) {
-			stream_base64_enc(out, (uint8_t *) SALT_MAGIC, SALT_MAGIC_LEN);
-			stream_base64_enc(out, init_ctx->salt, init_ctx->salt_len);
-		} else {
-			fwrite(SALT_MAGIC, 1, SALT_MAGIC_LEN, out);
-			fwrite(init_ctx->salt, 1, init_ctx->salt_len, out);
-		}
-	}
+	stream_base64_reset_all();
+	write_salt(e, out, salted_ctx);
 
 	size_t ret;
 	bool   padded = false;
@@ -38,7 +36,7 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 			padded             = true;
 		}
 
-		ECB_encrypt(ctx);
+		block_cipher(ctx);
 
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
@@ -47,8 +45,7 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 
 		memset(ctx->plaintext, 0, ctx->plaintext_len);
 	}
-	if (ferror(in))
-	{
+	if (ferror(in)) {
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_enc_flush(out);
 		throwe("couldn't read from stream", true);
@@ -58,7 +55,7 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		ctx->plaintext_len = 0;
 		free(ctx->plaintext);
 
-		ECB_encrypt(ctx);
+		block_cipher(ctx);
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
 		else
@@ -76,7 +73,7 @@ static void ft_des_ecb_enc(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		fclose(out);
 }
 
-static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, struct cipher_ctx *ctx) {
+static void ft_cipher_dec(struct s_env *e, struct salted_cipher_ctx *salted_ctx, struct cipher_ctx *ctx) {
 	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
@@ -90,14 +87,14 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 	stream_base64_reset_all();
 
 	if (!(e->opts & CIPHER_FLAG_salt)) {
-		off_t off = SALT_MAGIC_LEN + init_ctx->salt_len;
+		off_t off = SALT_MAGIC_LEN + salted_ctx->salt_len;
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_seek(in, off);
 		else
 			fseek(in, off, SEEK_SET);
 	}
 
-	size_t   ret;
+	size_t ret;
 
 	while (true) {
 		if (e->opts & CIPHER_FLAG_a) {
@@ -112,7 +109,7 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 				throwe("bad decrypt", false);
 		}
 
-		ECB_decrypt(ctx);
+		block_decipher(ctx);
 
 		fwrite(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, out);
 	}
@@ -123,26 +120,28 @@ static void ft_des_ecb_dec(struct s_env *e, struct s_cipher_init_ctx *init_ctx, 
 		fclose(out);
 }
 
-int ft_des_ecb(struct s_env *e) {
+int ft_cipher(struct s_env *e, enum block_cipher algo) {
 	if (e->opts & FLAG_HELP)
-		return ft_usage(0, e->cmd->name, e->cmd);
+		return ft_usage(0, e->av[0], e->cmd);
 
-	struct s_cipher_init_ctx init_ctx;
-	init_ctx.need_iv  = false;
-	init_ctx.salt_len = 8;
-	init_ctx.key_len  = 8;
+	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), algo);
+	struct salted_cipher_ctx *salted_ctx = ft_init_cipher(e, ctx);
 
-	ft_init_cipher(e, &init_ctx);
-
-	struct cipher_ctx ctx = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), BLOCK_CIPHER_DES, init_ctx);
-
-	if (!init_ctx.salt) {
-		init_ctx.salt_len = 0;
-	}
 
 	if (e->opts & CIPHER_FLAG_d)
-		ft_des_ecb_dec(e, &init_ctx, &ctx);
+		ft_cipher_enc(e, salted_ctx, ctx);
 	else
-		ft_des_ecb_enc(e, &init_ctx, &ctx);
+		ft_cipher_dec(e, salted_ctx, ctx);
+
+	free(ctx->plaintext);
+	free(ctx->ciphertext);
+	free(ctx->iv);
+	free(ctx->nonce);
+	free(ctx->key);
+	free(ctx);
+
+	free(salted_ctx->salt);
+	free(salted_ctx);
+
 	return 0;
 }
