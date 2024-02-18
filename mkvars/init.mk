@@ -48,6 +48,8 @@ PRINTF				?=	printf
 RM					?=	rm -f
 MKDIR				?=	mkdir -p
 STRIP				?=	strip
+BEAR				?=	bear
+JQ					?= jq
 
 NCC					:= $(CC)
 NCXX				:= $(CXX)
@@ -57,6 +59,8 @@ NMAKE				:= $(MAKE)
 NAR					:= $(AR)
 NRM					:= $(RM)
 NMKDIR				:= $(MKDIR)
+NBEAR				?= $(BEAR)
+NJQ					?= $(JQ)
 
 STD					?=	-std=c11
 CXX_STD				?=	-std=c++17
@@ -65,6 +69,14 @@ CFLAGS				?=	-Wall -Wextra -Werror $(addprefix -I,$(PATH_INC)) $(OPT_CFLAGS)
 CXXFLAGS			?=	$(filter-out $(STD),$(CFLAGS)) $(CXX_STD)
 ARFLAGS				?=	rcs
 ASFLAGS				?=
+
+ifeq (,$(shell which $(BEAR)))
+	$(error "No $(BEAR) in $(PATH), consider doing apt-get install $(BEAR) (or appropriate command for your system)")
+endif
+
+ifeq (,$(shell which $(JQ)))
+	$(error "No $(JQ) in $(PATH), consider doing apt-get install $(JQ) (or appropriate command for your system)")
+endif
 
 ifneq ($(findstring std,$(CFLAGS)),std)
 	CFLAGS			+=	$(STD)
@@ -113,6 +125,8 @@ ifeq ($(VERBOSE),0)
 	RM				:=	@$(RM)
 	MKDIR			:=	@$(MKDIR)
 	MAKE			:=	@$(MAKE)
+	BEAR			:=	@$(BEAR)
+	JQ				:=	@$(JQ)
 endif
 
 ifeq ($(DEBUG),1)

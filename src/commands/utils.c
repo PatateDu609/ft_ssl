@@ -5,6 +5,7 @@
 #include "string.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
@@ -85,15 +86,10 @@ bool check_path_readable(char *val) {
 }
 
 bool check_path_writable(char *val) {
-	struct stat res;
+	int fd = open(val, O_CREAT | O_TRUNC | O_WRONLY, 0600);
+	if (fd == -1)
+		throwe("couldn't open file in write access", true);
 
-	if (stat(val, &res) == -1) {
-		fprintf(stderr, "error: %s: %s", val, strerror(errno));
-		return false;
-	}
-
-	if (access(val, W_OK))
-		throwe("couldn't open file in write access", false);
-
+	close(fd);
 	return true;
 }

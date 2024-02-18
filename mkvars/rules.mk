@@ -16,6 +16,12 @@ endif
 
 all:							$(NAME)
 
+compiledb:
+	$(BEAR)	-- $(NMAKE) re
+	$(MAKE) -s -C libcrypto42 compiledb
+	$(JQ) -s add libcrypto42/compile_commands.json ./compile_commands.json > compile_commands.tmp.json
+	mv compile_commands.tmp.json compile_commands.json
+
 $(PATH_OBJ)/%.o:			$(PATH_SRC)/%.c
 	$(MKDIR) $(dir $@)
 

@@ -29,11 +29,11 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 	write_salt(e, out, salted_ctx);
 
 	size_t ret;
-	bool   padded = false;
+	ctx->final    = false;
 	while ((ret = fread(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, in))) {
 		if (ret != ctx->plaintext_len) {
 			ctx->plaintext_len = ret;
-			padded             = true;
+			ctx->final         = true;
 		}
 
 		block_cipher(ctx);
@@ -51,10 +51,11 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 		throwe("couldn't read from stream", true);
 	}
 
-	if (!padded) {
+	if (!ctx->final) {
 		ctx->plaintext_len = 0;
 		free(ctx->plaintext);
 
+		ctx->final = true;
 		block_cipher(ctx);
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
@@ -124,11 +125,11 @@ int ft_cipher(struct s_env *e, enum block_cipher algo) {
 	if (e->opts & FLAG_HELP)
 		return ft_usage(0, e->av[0], e->cmd);
 
-	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), algo);
+	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(e->opts & CIPHER_FLAG_e, algo);
 	struct salted_cipher_ctx *salted_ctx = ft_init_cipher(e, ctx);
 
 
-	if (e->opts & CIPHER_FLAG_d)
+	if (e->opts & CIPHER_FLAG_e)
 		ft_cipher_enc(e, salted_ctx, ctx);
 	else
 		ft_cipher_dec(e, salted_ctx, ctx);
