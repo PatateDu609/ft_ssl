@@ -29,7 +29,7 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 	write_salt(e, out, salted_ctx);
 
 	size_t ret;
-	ctx->final    = false;
+	ctx->final = false;
 	while ((ret = fread(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, in))) {
 		if (ret != ctx->plaintext_len) {
 			ctx->plaintext_len = ret;
@@ -52,15 +52,18 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 	}
 
 	if (!ctx->final) {
-		ctx->plaintext_len = 0;
-		free(ctx->plaintext);
+		//		ctx->plaintext_len = 0;
+		//		free(ctx->plaintext);
+		//		ctx->plaintext = NULL;
 
 		ctx->final = true;
 		block_cipher(ctx);
-		if (e->opts & CIPHER_FLAG_a)
-			stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
-		else
-			fwrite(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->ciphertext_len, out);
+		if (ctx->ciphertext) {
+			if (e->opts & CIPHER_FLAG_a)
+				stream_base64_enc(out, ctx->ciphertext, ctx->ciphertext_len);
+			else
+				fwrite(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->ciphertext_len, out);
+		}
 	}
 
 	if (e->opts & CIPHER_FLAG_a) {
@@ -128,6 +131,7 @@ int ft_cipher(struct s_env *e, enum block_cipher algo) {
 	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(e->opts & CIPHER_FLAG_e, algo);
 	struct salted_cipher_ctx *salted_ctx = ft_init_cipher(e, ctx);
 
+//	debug_print(stderr, salted_ctx);
 
 	if (e->opts & CIPHER_FLAG_e)
 		ft_cipher_enc(e, salted_ctx, ctx);

@@ -12,4 +12,4 @@ export MY_COMMAND="./ft_ssl"
 #bash tests/test_base64.sh
 
 echo "Launching enc tests"
-bash tests/test_enc.sh
+time bash tests/test_enc.sh

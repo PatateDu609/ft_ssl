@@ -6,6 +6,25 @@
 #include <ctype.h>
 #include <string.h>
 
+static void print_hex(FILE *out, uint8_t *data, size_t s) {
+	if (data) {
+		for (size_t i = 0; i < s; i++)
+			fprintf(out, "%02X", data[i]);
+	} else {
+		fprintf(out, "<NULL>");
+	}
+}
+
+void debug_print(FILE *out, struct salted_cipher_ctx *ctx) {
+	fprintf(out, "key=");
+	print_hex(out, ctx->ctx->key, ctx->ctx->key_len);
+	fprintf(out, "\niv=");
+	print_hex(out, ctx->ctx->iv, ctx->ctx->iv_len);
+	fprintf(out, "\nsalt=");
+	print_hex(out, ctx->salt, ctx->salt_len);
+	fprintf(out, "\n");
+}
+
 uint8_t *ft_str_to_hex(char *str, size_t target_len) {
 	uint8_t *hex = calloc(target_len, sizeof *hex);
 	if (!hex)

@@ -3,6 +3,57 @@
 declare -A ENC_ALGORITHM
 declare -A IN_OUT_MAP
 
+declare -A ALGO_KEY_LEN
+ALGO_KEY_LEN["aes-128"]=$((128 / 8))
+ALGO_KEY_LEN["aes-192"]=$((192 / 8))
+ALGO_KEY_LEN["aes-256"]=$((256 / 8))
+ALGO_KEY_LEN["des"]=$((64 / 8))
+ALGO_KEY_LEN["des-ede"]=$((2 * 64 / 8))
+ALGO_KEY_LEN["des-ede3"]=$((3 * 64 / 8))
+
+function getAlgoKeyLen() {
+  if [ $# -ne 1 ]; then
+    echo "usage: getAlgoKeyLen <algo name>"
+    exit 1
+  fi
+
+  local withoutBlockCipherMode
+  withoutBlockCipherMode="$(echo -n "$1" | sed -E "s/ecb|cfb[18]?|cbc|ofb|ctr//g;s/-$//g")"
+  #  echo "$withoutBlockCipherMode" 1>&2
+
+  if [ ${ALGO_KEY_LEN[$withoutBlockCipherMode]} ]; then
+    echo -n "${ALGO_KEY_LEN[$withoutBlockCipherMode]}"
+  else
+    echo -n "not found" 1>&2
+    return 1
+  fi
+
+  return 0
+}
+
+function getAlgoIvLen() {
+  if [ $# -ne 1 ]; then
+    echo "usage: getAlgoIvLen <algo name>"
+    exit 1
+  fi
+
+  local algoType
+  algoType="$(echo -n "$1" | grep -oE "^(aes|des)")"
+
+  case "$algoType" in
+  "aes") echo -n 16 ;;
+  "des") echo -n 8 ;;
+  *) return 1 ;;
+  esac
+
+  return 0
+}
+
+function randomHex() {
+  local len=$1
+  openssl rand -hex "$len"
+}
+
 # Generates a random password with a random length using optional
 # min (-m option)/max (-M option) values.
 function random_password() {
@@ -89,25 +140,6 @@ function run_enc() {
     printf "\t-v <iv> will forward an initial vector (in hex form)\n" 1>&2
   }
 
-  function debug() {
-    printf "%s\n" "------------------------------------------------------------" 1>&2
-    (
-      echo "encrypt::\"${encrypt}\""
-      echo "decrypt::\"${decrypt}\""
-      echo "input::\"${input}\""
-      echo "output::\"${output}\""
-      echo "base64::\"${base64}\""
-      echo "passphrase::\"${passphrase}\""
-
-      echo "key \"${key}\""
-      echo "salt::\"${salt}\""
-      echo "iv::\"${iv}\""
-      echo "ft_ssl command::$(construct_ft_ssl_cmd)"
-      echo "openssl command::$(construct_openssl_cmd)"
-    ) | column -t -s'::' 1>&2
-    printf "%s\n" "------------------------------------------------------------" 1>&2
-  }
-
   function min_checks() {
     if $encrypt && $decrypt; then
       echo "Both encrypt and decrypt are specified"
@@ -174,6 +206,25 @@ function run_enc() {
     echo "$cmd"
   }
 
+  function debug() {
+    printf "%s\n" "------------------------------------------------------------" 1>&2
+    (
+      echo "encrypt::\"${encrypt}\""
+      echo "decrypt::\"${decrypt}\""
+      echo "input::\"${input}\""
+      echo "output::\"${output}\""
+      echo "base64::\"${base64}\""
+      echo "passphrase::\"${passphrase}\""
+
+      echo "key \"${key}\""
+      echo "salt::\"${salt}\""
+      echo "iv::\"${iv}\""
+      echo "ft_ssl command::$(construct_ft_ssl_cmd)"
+      echo "openssl command::$(construct_openssl_cmd)"
+    ) | column -t -s'::' 1>&2
+    printf "%s\n" "------------------------------------------------------------" 1>&2
+  }
+
   local my_algo
   local openssl_algo
 
@@ -194,6 +245,7 @@ function run_enc() {
   shift
 
   local OPTIND OPTARG
+  local opt
   while getopts ":hadi:o:p:s:k:v:eg" opt; do
     case $opt in
     'a') base64=true ;;
@@ -226,11 +278,10 @@ function run_enc() {
   fi
 
   if ! min_checks; then
+    debug
     return 2
   fi
 
-  echo -ne "[\033[32;1m$my_algo\033[0m]\t"
-  echo "Testing '$input'"
   eval " $(construct_openssl_cmd)"
 
   if ! eval " $(construct_ft_ssl_cmd)"; then
@@ -241,10 +292,42 @@ function run_enc() {
 }
 
 function test_enc() {
+  gen_diff() {
+    local mine=$1
+    local openssl=$2
+    local diff=$3
+
+    # shellcheck disable=SC2016
+    local gawk_format='{printf "%08X %02X %02X\n", $1, strtonum(0$2), strtonum(0$3)}'
+
+    cmd="cmp -l '$openssl' '$mine' 2>/tmp/diff.stderr | gawk '$gawk_format' >'$diff'"
+    eval " $cmd"
+
+    if [ ! -s "$diff" ]; then
+      rm "$diff"
+      return 0
+    fi
+
+    {
+      echo "# $cmd"
+      cat "$diff"
+      cat "/tmp/diff.stderr"
+    } >"/tmp/diff" && mv "/tmp/diff" "$diff"
+
+    rm /tmp/diff.stderr
+
+    return 1
+  }
+
   local mode="key"
   local alg security_args
 
-  local OPTARG OPTIND
+  local count_enc=0
+  local count_enc_b64=0
+  local count_success_enc=0
+  local count_success_enc_b64=0
+
+  local OPTIND OPTARG
   while getopts ":pka:" opt; do
     case $opt in
     'p') mode="pass" ;;
@@ -262,43 +345,86 @@ function test_enc() {
   done
 
   if [[ "$mode" = "key" ]]; then
-    security_args="-k $(head -c 16 /dev/random | hexdump -e '/1 "%02X"')"
+    local keyLen
+    keyLen="$(getAlgoKeyLen "$alg")"
+    if [[ $? -ne 0 ]]; then
+      echo "bad key len"
+      return 1
+    fi
+    local key
+    key="$(randomHex "$keyLen")"
+    security_args="-k $key"
 
     if ! echo "$alg" | grep -q 'ecb'; then
-      security_args="$security_args -v $(head -c 8 /dev/random | hexdump -e '/1 "%02X"')"
+      local iv
+      iv="$(randomHex "$(getAlgoIvLen "$alg")")"
+      security_args="$security_args -v $iv"
     fi
   else
     security_args="-p $(random_password -m 16 -M 32)"
-    security_args="$security_args -s $(head -c 16 /dev/random | hexdump -e '/1 "%02X"')"
+    local salt
+    salt="$(randomHex 8)"
+    security_args="$security_args -s $salt"
   fi
 
+  local disp_mode=""
+  [[ "$mode" = "key" ]] && disp_mode="forced key" || disp_mode="pbkdf2"
+  printf "Testing \033[32;1m%s\033[0m using $disp_mode mode\n" "$alg"
+
+  exit_code=0
   for input in "${!IN_OUT_MAP[@]}"; do
+    count_enc=$((count_enc + 1))
+
     # shellcheck disable=SC2086
-    if ! run_enc "$alg" -g -e $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.enc"; then
+    if ! run_enc "$alg" -e $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc"; then
       echo "error: $alg: $input: couldn't run alg on input file" 1>&2
       exit 1
     fi
-    #		# shellcheck disable=SC2086
-    #		if ! run_enc "$alg" -d $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.dec"; then
-    #			echo "error: $alg: $input: couldn't run alg on input file" 1>&2
-    #			exit 1
-    #		fi
-    #		# shellcheck disable=SC2086
-    #		if ! run_enc "$alg" -e -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.enc.base64"; then
-    #			echo "error: $alg: $input: couldn't run alg on input file" 1>&2
-    #			exit 1
-    #		fi
-    #		# shellcheck disable=SC2086
-    #		if ! run_enc "$alg" -d -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.dec.base64"; then
-    #			echo "error: $alg: $input: couldn't run alg on input file" 1>&2
-    #			exit 1
-    #		fi
 
-    cmp -l "${IN_OUT_MAP[$input]}.enc.openssl" "${IN_OUT_MAP[$input]}.enc.ft_ssl" | gawk '{printf "%08X %02X %02X\n", $1, strtonum(0$2), strtonum(0$3)}' >"${input//inputs/diff}.enc.diff"
-    #		diff "${IN_OUT_MAP[$input]}.dec."{openssl,ft_ssl}
-    #		diff "${IN_OUT_MAP[$input]}.enc.base64."{openssl,ft_ssl}
-    #		diff "${IN_OUT_MAP[$input]}.dec.base64."{openssl,ft_ssl}
+    # shellcheck disable=SC2086
+    #    if ! run_enc "$alg" -d $security_args -i "${IN_OUT_MAP[$input]}.enc.openssl" -o "${IN_OUT_MAP[$input]}.$alg.dec"; then
+    #      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
+    #      exit 1
+    #    fi
+
+    count_enc_b64=$((count_enc_b64 + 1))
+    # shellcheck disable=SC2086
+    if ! run_enc "$alg" -e -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc.base64"; then
+      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
+      exit 1
+    fi
+
+    # shellcheck disable=SC2086
+    #    if ! run_enc "$alg" -d -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.dec.base64"; then
+    #      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
+    #      exit 1
+    #    fi
+
+    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.enc.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.openssl" "${input//inputs/diff}.$alg.enc"; then
+      exit_code=1
+    else
+      count_success_enc=$((count_success_enc + 1))
+    fi
+
+    #    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.dec.openssl" "${input//inputs/diff}.$alg.dec"; then
+    #      exit_code=1
+    #    fi
+
+    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.enc.base64.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.base64.openssl" "${input//inputs/diff}.$alg.enc.base64"; then
+      exit_code=1
+    else
+      count_success_enc_b64=$((count_success_enc_b64 + 1))
+    fi
+
+    #    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl.base64" "${IN_OUT_MAP[$input]}.$alg.dec.openssl.base64" "${input//inputs/diff}.$alg.dec.base64"; then
+    #      exit_code=1
+    #    fi
   done
+
+  printf "Encryption tests: Passed %d/%d\n" "$count_success_enc" "$count_enc"
+  printf "Encryption with base64 tests: Passed %d/%d\n" "$count_success_enc_b64" "$count_enc_b64"
+
+  return $exit_code
 }
 
 CIPHER_COMMANDS="$(./ft_ssl help 2>&1 |
@@ -343,7 +469,7 @@ mkdir -p "$PWD"/.tmp/{inputs,outputs,diff}
 echo -n "" >"$PWD"/.tmp/inputs/empty
 
 echo -n "a" >"$PWD"/.tmp/inputs/small1
-echo -n "abcdef" >."$PWD"/.tmp/inputs/small2
+echo -n "abcdef" >"$PWD"/.tmp/inputs/small2
 echo -n "0123456789" >"$PWD"/.tmp/inputs/small3
 
 (
@@ -369,11 +495,9 @@ for file in "$PWD"/.tmp/inputs/*; do
   IN_OUT_MAP["$file"]="${file//inputs/outputs}"
 done
 
-test_enc -a "des-ecb"
-
-#for alg in "${!ENC_ALGORITHM[@]}"; do
-#	test_enc -a "$alg" -p
-#	test_enc -a "$alg" -k
-#done
+for alg in "${!ENC_ALGORITHM[@]}"; do
+  test_enc -a "$alg" -p
+  test_enc -a "$alg" -k
+done
 
 #rm -rf .tmp
