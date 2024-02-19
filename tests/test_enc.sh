@@ -173,12 +173,13 @@ function run_enc() {
     cmd="$cmd -in \"${input}\""
     cmd="$cmd -out \"${output}.openssl\""
 
-    if [ "$passphrase" != "" ]; then cmd="$cmd -k \"$passphrase\""; fi
+    if [ "$passphrase" != "" ]; then
+      cmd="$cmd -k \"$passphrase\""
+      cmd="$cmd -pbkdf2 -iter 10000"
+    fi
     if [ "$salt" != "" ]; then cmd="$cmd -S \"$salt\""; fi
     if [ "$key" != "" ]; then cmd="$cmd -K \"$key\""; fi
     if [ "$iv" != "" ]; then cmd="$cmd -iv \"$iv\""; fi
-
-    cmd="$cmd -pbkdf2 -iter 10000"
 
     if echo "$openssl_algo" | grep -E "^[-]?des" | grep -vqe "ede"; then
       cmd="$cmd -provider default -provider legacy"
@@ -282,9 +283,16 @@ function run_enc() {
     return 2
   fi
 
-  eval " $(construct_openssl_cmd)"
+  local openssl_cmd ft_ssl_cmd prefix
+  openssl_cmd="$(construct_openssl_cmd)"
+  ft_ssl_cmd="$(construct_ft_ssl_cmd)"
 
-  if ! eval " $(construct_ft_ssl_cmd)"; then
+  prefix="$(basename "$input")$( ($base64 && echo ".base64") || echo "").$( ([ "$key" != "" ] && echo "key") || echo "pbkdf2")"
+  echo "$openssl_cmd" >"/tmp/cmd.$prefix.openssl"
+  echo "$ft_ssl_cmd" >"/tmp/cmd.$prefix.ft_ssl"
+
+  eval " $openssl_cmd"
+  if ! eval " $ft_ssl_cmd"; then
     exit 1
   fi
 
@@ -293,9 +301,13 @@ function run_enc() {
 
 function test_enc() {
   gen_diff() {
-    local mine=$1
-    local openssl=$2
-    local diff=$3
+    local input=$1
+    local mine=$2
+    local openssl=$3
+    local diff=$4
+
+    local prefix
+    prefix="$(basename "$input")$( (echo "$diff" | grep -q "base64" && echo ".base64") || echo "").$( ([ "$mode" = "key" ] && echo "key") || echo "pbkdf2")"
 
     # shellcheck disable=SC2016
     local gawk_format='{printf "%08X %02X %02X\n", $1, strtonum(0$2), strtonum(0$3)}'
@@ -305,16 +317,19 @@ function test_enc() {
 
     if [ ! -s "$diff" ]; then
       rm "$diff"
+      rm "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
       return 0
     fi
 
     {
       echo "# $cmd"
+      echo "# OpenSSL command: $(cat "/tmp/cmd.$prefix.openssl")"
+      echo "# ft_ssl command: $(cat "/tmp/cmd.$prefix.ft_ssl")"
       cat "$diff"
       cat "/tmp/diff.stderr"
     } >"/tmp/diff" && mv "/tmp/diff" "$diff"
 
-    rm /tmp/diff.stderr
+    rm "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
 
     return 1
   }
@@ -400,23 +415,23 @@ function test_enc() {
     #      exit 1
     #    fi
 
-    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.enc.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.openssl" "${input//inputs/diff}.$alg.enc"; then
+    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.enc.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.openssl" "${input//inputs/diff}.$alg.enc"; then
       exit_code=1
     else
       count_success_enc=$((count_success_enc + 1))
     fi
 
-    #    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.dec.openssl" "${input//inputs/diff}.$alg.dec"; then
+    #    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.dec.openssl" "${input//inputs/diff}.$alg.dec"; then
     #      exit_code=1
     #    fi
 
-    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.enc.base64.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.base64.openssl" "${input//inputs/diff}.$alg.enc.base64"; then
+    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.enc.base64.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.base64.openssl" "${input//inputs/diff}.$alg.enc.base64"; then
       exit_code=1
     else
       count_success_enc_b64=$((count_success_enc_b64 + 1))
     fi
 
-    #    if ! gen_diff "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl.base64" "${IN_OUT_MAP[$input]}.$alg.dec.openssl.base64" "${input//inputs/diff}.$alg.dec.base64"; then
+    #    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl.base64" "${IN_OUT_MAP[$input]}.$alg.dec.openssl.base64" "${input//inputs/diff}.$alg.dec.base64"; then
     #      exit_code=1
     #    fi
   done

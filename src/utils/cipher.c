@@ -52,11 +52,11 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 	}
 
 	if (!ctx->final) {
-		//		ctx->plaintext_len = 0;
-		//		free(ctx->plaintext);
-		//		ctx->plaintext = NULL;
+		ctx->plaintext_len = 0;
+		free(ctx->plaintext);
+		ctx->plaintext = NULL;
 
-		ctx->final = true;
+		ctx->final     = true;
 		block_cipher(ctx);
 		if (ctx->ciphertext) {
 			if (e->opts & CIPHER_FLAG_a)
@@ -128,15 +128,15 @@ int ft_cipher(struct s_env *e, enum block_cipher algo) {
 	if (e->opts & FLAG_HELP)
 		return ft_usage(0, e->av[0], e->cmd);
 
-	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(e->opts & CIPHER_FLAG_e, algo);
+	struct cipher_ctx        *ctx        = ft_init_cipher_ctx(!(e->opts & CIPHER_FLAG_d), algo);
 	struct salted_cipher_ctx *salted_ctx = ft_init_cipher(e, ctx);
 
-//	debug_print(stderr, salted_ctx);
+	//	debug_print(stderr, salted_ctx);
 
-	if (e->opts & CIPHER_FLAG_e)
-		ft_cipher_enc(e, salted_ctx, ctx);
-	else
+	if (e->opts & CIPHER_FLAG_d)// if no parameter is passed, encryption should be the default
 		ft_cipher_dec(e, salted_ctx, ctx);
+	else
+		ft_cipher_enc(e, salted_ctx, ctx);
 
 	free(ctx->plaintext);
 	free(ctx->ciphertext);
