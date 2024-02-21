@@ -3,6 +3,13 @@
 declare -A ENC_ALGORITHM
 declare -A IN_OUT_MAP
 
+declare -A TEST_RESULTS
+TEST_RESULTS["enc"]=0
+TEST_RESULTS["enc_b64"]=0
+TEST_RESULTS["dec"]=0
+TEST_RESULTS["dec_b64"]=0
+TEST_FILES=0
+
 declare -A ALGO_KEY_LEN
 ALGO_KEY_LEN["aes-128"]=$((128 / 8))
 ALGO_KEY_LEN["aes-192"]=$((192 / 8))
@@ -21,7 +28,7 @@ function getAlgoKeyLen() {
   withoutBlockCipherMode="$(echo -n "$1" | sed -E "s/ecb|cfb[18]?|cbc|ofb|ctr//g;s/-$//g")"
   #  echo "$withoutBlockCipherMode" 1>&2
 
-  if [ ${ALGO_KEY_LEN[$withoutBlockCipherMode]} ]; then
+  if [ "${ALGO_KEY_LEN[$withoutBlockCipherMode]}" ]; then
     echo -n "${ALGO_KEY_LEN[$withoutBlockCipherMode]}"
   else
     echo -n "not found" 1>&2
@@ -61,7 +68,7 @@ function random_password() {
   local MAX=20
   local POS_CNT=0
   local RANDSTR
-  local CNUM
+  local CNUM MAX_LEN
 
   local OPTIND OPTARG
   while getopts ":m:M:" opt; do
@@ -337,8 +344,6 @@ function test_enc() {
   local mode="key"
   local alg security_args
 
-  local count_enc=0
-  local count_enc_b64=0
   local count_success_enc=0
   local count_success_enc_b64=0
 
@@ -386,10 +391,8 @@ function test_enc() {
   [[ "$mode" = "key" ]] && disp_mode="forced key" || disp_mode="pbkdf2"
   printf "Testing \033[32;1m%s\033[0m using $disp_mode mode\n" "$alg"
 
-  exit_code=0
+  local exit_code=0
   for input in "${!IN_OUT_MAP[@]}"; do
-    count_enc=$((count_enc + 1))
-
     # shellcheck disable=SC2086
     if ! run_enc "$alg" -e $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc"; then
       echo "error: $alg: $input: couldn't run alg on input file" 1>&2
@@ -402,7 +405,6 @@ function test_enc() {
     #      exit 1
     #    fi
 
-    count_enc_b64=$((count_enc_b64 + 1))
     # shellcheck disable=SC2086
     if ! run_enc "$alg" -e -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc.base64"; then
       echo "error: $alg: $input: couldn't run alg on input file" 1>&2
@@ -436,8 +438,10 @@ function test_enc() {
     #    fi
   done
 
-  printf "Encryption tests: Passed %d/%d\n" "$count_success_enc" "$count_enc"
-  printf "Encryption with base64 tests: Passed %d/%d\n" "$count_success_enc_b64" "$count_enc_b64"
+  printf "Encryption tests: Passed %d/%d\n" "$count_success_enc" "$TEST_FILES"
+  printf "Encryption with base64 tests: Passed %d/%d\n" "$count_success_enc_b64" "$TEST_FILES"
+  TEST_RESULTS["enc"]=$((TEST_RESULTS["enc"] + count_success_enc))
+  TEST_RESULTS["enc_b64"]=$((TEST_RESULTS["enc_b64"] + count_success_enc_b64))
 
   return $exit_code
 }
@@ -506,13 +510,25 @@ cp include/commands.h "$PWD"/.tmp/inputs/commands.h
 
 # Generate output dict
 
+shopt -s dotglob
 for file in "$PWD"/.tmp/inputs/*; do
   IN_OUT_MAP["$file"]="${file//inputs/outputs}"
+  TEST_FILES=$((TEST_FILES + 1))
 done
+shopt -u dotglob
 
 for alg in "${!ENC_ALGORITHM[@]}"; do
   test_enc -a "$alg" -p
   test_enc -a "$alg" -k
 done
+
+printf "\n-------------------------------------------------------------------------------------\n\n"
+
+(
+  printf "Encryption test succeeded:%d/%d\n" "${TEST_RESULTS["enc"]}" "$((${#ENC_ALGORITHM[@]} * 2 * ${#IN_OUT_MAP[@]}))"
+  printf "Decryption test succeeded:%d/%d\n" "${TEST_RESULTS["dec"]}" "$((${#ENC_ALGORITHM[@]} * 2 * ${#IN_OUT_MAP[@]}))"
+  printf "Bas64 encryption test succeeded:%d/%d\n" "${TEST_RESULTS["enc_b64"]}" "$((${#ENC_ALGORITHM[@]} * 2 * ${#IN_OUT_MAP[@]}))"
+  printf "Base64 decryption test succeeded:%d/%d\n" "${TEST_RESULTS["dec_b64"]}" "$((${#ENC_ALGORITHM[@]} * 2 * ${#IN_OUT_MAP[@]}))"
+) | column -t -s':'
 
 #rm -rf .tmp
