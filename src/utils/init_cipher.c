@@ -138,7 +138,7 @@ static uint8_t *ft_init_initial_vector(struct s_env      *e,
 	if (!uiv && ukey)
 		throwe("iv false", false);
 	if (uiv)
-		return ft_str_to_hex(uiv, ctx->iv_len);
+		return ft_str_to_hex(uiv, len);
 	else {
 		uint8_t *iv = malloc(len * sizeof *iv);
 		if (!iv)
@@ -169,7 +169,7 @@ struct salted_cipher_ctx *ft_init_cipher(struct s_env *e, struct cipher_ctx *ctx
 		struct pbkdf2_hmac_req req;
 
 		req.algo         = HMAC_SHA2_256;
-		req.dklen        = ctx->key_len + ctx->iv_len;
+		req.dklen        = ctx->key_len + ctx->iv_len + ctx->nonce_len;
 		req.salt         = salted->salt;
 		req.salt_len     = salted->salt_len;
 		req.iterations   = PBKDF_ITER_COUNT;
