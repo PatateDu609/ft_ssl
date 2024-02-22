@@ -51,7 +51,7 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 		throwe("couldn't read from stream", true);
 	}
 
-	if (!ctx->final) {
+	if (!ctx->final && ctx->algo.need_padding) {
 		ctx->plaintext_len = 0;
 		free(ctx->plaintext);
 		ctx->plaintext = NULL;
