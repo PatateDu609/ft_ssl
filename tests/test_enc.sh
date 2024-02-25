@@ -224,7 +224,7 @@ function run_enc() {
       echo "base64::\"${base64}\""
       echo "passphrase::\"${passphrase}\""
 
-      echo "key \"${key}\""
+      echo "key::\"${key}\""
       echo "salt::\"${salt}\""
       echo "iv::\"${iv}\""
       echo "ft_ssl command::$(construct_ft_ssl_cmd)"
@@ -314,6 +314,7 @@ function test_enc() {
     local diff=$4
 
     local prefix
+    # "$(basename "$input")$( ($base64 && echo ".base64") || echo "").$( ([ "$key" != "" ] && echo "key") || echo "pbkdf2")"
     prefix="$(basename "$input")$( (echo "$diff" | grep -q "base64" && echo ".base64") || echo "").$( ([ "$mode" = "key" ] && echo "key") || echo "pbkdf2")"
 
     # shellcheck disable=SC2016
@@ -323,8 +324,8 @@ function test_enc() {
     eval " $cmd"
 
     if [ ! -s "$diff" ]; then
-      rm "$diff"
-      rm "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
+      rm -f "$diff"
+      rm -f "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
       return 0
     fi
 
@@ -336,7 +337,7 @@ function test_enc() {
       cat "/tmp/diff.stderr"
     } >"/tmp/diff" && mv "/tmp/diff" "$diff"
 
-    rm "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
+    rm -f "/tmp/diff.stderr" "/tmp/cmd.$prefix.openssl" "/tmp/cmd.$prefix.ft_ssl"
 
     return 1
   }
@@ -346,6 +347,8 @@ function test_enc() {
 
   local count_success_enc=0
   local count_success_enc_b64=0
+  local count_success_dec=0
+  local count_success_dec_b64=0
 
   local OPTIND OPTARG
   while getopts ":pka:" opt; do
@@ -393,55 +396,73 @@ function test_enc() {
 
   local exit_code=0
   for input in "${!IN_OUT_MAP[@]}"; do
+    local out="${IN_OUT_MAP[$input]}.$alg"
+    local out_enc="$out.enc"
+    local out_dec="$out.dec"
+    local out_enc_base64="$out_enc.base64"
+    local out_dec_base64="$out_dec.base64"
+
     # shellcheck disable=SC2086
-    if ! run_enc "$alg" -e $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc"; then
+    if ! run_enc "$alg" -e $security_args -i "$input" -o "$out_enc"; then
       echo "error: $alg: $input: couldn't run alg on input file" 1>&2
       exit 1
     fi
 
     # shellcheck disable=SC2086
-    #    if ! run_enc "$alg" -d $security_args -i "${IN_OUT_MAP[$input]}.enc.openssl" -o "${IN_OUT_MAP[$input]}.$alg.dec"; then
-    #      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
-    #      exit 1
-    #    fi
-
-    # shellcheck disable=SC2086
-    if ! run_enc "$alg" -e -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.enc.base64"; then
+    if ! run_enc "$alg" -d $security_args -i "$out_enc.openssl" -o "$out_dec"; then
       echo "error: $alg: $input: couldn't run alg on input file" 1>&2
       exit 1
     fi
 
     # shellcheck disable=SC2086
-    #    if ! run_enc "$alg" -d -a $security_args -i "${input}" -o "${IN_OUT_MAP[$input]}.$alg.dec.base64"; then
+    #    if ! run_enc "$alg" -e -a $security_args -i "$input" -o "$out_enc_base64"; then
+    #      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
+    #      exit 1
+    #    fi
+    #
+    #    # shellcheck disable=SC2086
+    #    if ! run_enc "$alg" -g -d -a $security_args -i "$out_enc_base64.openssl" -o "$out_dec_base64"; then
     #      echo "error: $alg: $input: couldn't run alg on input file" 1>&2
     #      exit 1
     #    fi
 
-    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.enc.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.openssl" "${input//inputs/diff}.$alg.enc"; then
+    if ! gen_diff "$input" "$out_enc.ft_ssl" "$out_enc.openssl" "${input//inputs/diff}.$alg.enc"; then
       exit_code=1
     else
       count_success_enc=$((count_success_enc + 1))
+      #      rm -f "$out_enc.ft_ssl" "$out_enc.openssl"
     fi
 
-    #    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.dec.openssl" "${input//inputs/diff}.$alg.dec"; then
-    #      exit_code=1
-    #    fi
-
-    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.enc.base64.ft_ssl" "${IN_OUT_MAP[$input]}.$alg.enc.base64.openssl" "${input//inputs/diff}.$alg.enc.base64"; then
+    if ! gen_diff "$input" "$out_dec.ft_ssl" "$out_dec.openssl" "${input//inputs/diff}.$alg.dec"; then
       exit_code=1
     else
-      count_success_enc_b64=$((count_success_enc_b64 + 1))
+      count_success_dec=$((count_success_dec + 1))
+      #      rm -f "$out_dec.ft_ssl" "$out_dec.openssl"
     fi
 
-    #    if ! gen_diff "$input" "${IN_OUT_MAP[$input]}.$alg.dec.ft_ssl.base64" "${IN_OUT_MAP[$input]}.$alg.dec.openssl.base64" "${input//inputs/diff}.$alg.dec.base64"; then
+    #    if ! gen_diff "$input" "$out_enc_base64.ft_ssl" "$out_enc_base64.openssl" "${input//inputs/diff}.$alg.enc.base64"; then
     #      exit_code=1
+    #    else
+    #      count_success_enc_b64=$((count_success_enc_b64 + 1))
+    #      rm -f "$out_enc_base64.ft_ssl" "$out_enc_base64.openssl"
+    #    fi
+
+    #    if ! gen_diff "$input" "$out_dec_base64.ft_ssl" "$out_dec_base64.openssl" "${input//inputs/diff}.$alg.dec.base64"; then
+    #      exit_code=1
+    #    else
+    #      count_success_dec_b64=$((count_success_dec_b64 + 1))
+    #      rm -f "$out_dec_base64.ft_ssl" "$out_dec_base64.openssl"
     #    fi
   done
 
-  printf "Encryption tests: Passed %d/%d\n" "$count_success_enc" "$TEST_FILES"
-  printf "Encryption with base64 tests: Passed %d/%d\n" "$count_success_enc_b64" "$TEST_FILES"
+  #  printf "Encryption tests: Passed %d/%d\n" "$count_success_enc" "$TEST_FILES"
+  #  printf "Encryption with base64 tests: Passed %d/%d\n" "$count_success_enc_b64" "$TEST_FILES"
+  printf "Decryption tests: Passed %d/%d\n" "$count_success_dec" "$TEST_FILES"
+  printf "Decryption with base64 tests: Passed %d/%d\n" "$count_success_dec_b64" "$TEST_FILES"
   TEST_RESULTS["enc"]=$((TEST_RESULTS["enc"] + count_success_enc))
   TEST_RESULTS["enc_b64"]=$((TEST_RESULTS["enc_b64"] + count_success_enc_b64))
+  TEST_RESULTS["dec"]=$((TEST_RESULTS["dec"] + count_success_dec))
+  TEST_RESULTS["dec_b64"]=$((TEST_RESULTS["dec_b64"] + count_success_dec_b64))
 
   return $exit_code
 }

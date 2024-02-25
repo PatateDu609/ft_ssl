@@ -15,11 +15,11 @@ void write_salt(struct s_env *e, FILE *out, struct salted_cipher_ctx *salted_ctx
 }
 
 static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx, struct cipher_ctx *ctx) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "rb") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	FILE *out = e->out_file ? fopen(e->out_file, "wb") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
@@ -78,44 +78,65 @@ static void ft_cipher_enc(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 }
 
 static void ft_cipher_dec(struct s_env *e, struct salted_cipher_ctx *salted_ctx, struct cipher_ctx *ctx) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "rb") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	FILE *out = e->out_file ? fopen(e->out_file, "wb") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
 	}
 
-	stream_base64_reset_all();
+	fseek(in, 0L, SEEK_END);
+	size_t size = ftell(in), cur = 0;
+	fseek(in, 0L, SEEK_SET);
 
-	if (!(e->opts & CIPHER_FLAG_salt)) {
+	stream_base64_reset_all();
+	if (!(e->opts & CIPHER_FLAG_salt) && salted_ctx->salt_len) {
 		off_t off = SALT_MAGIC_LEN + salted_ctx->salt_len;
 		if (e->opts & CIPHER_FLAG_a)
 			stream_base64_seek(in, off);
 		else
 			fseek(in, off, SEEK_SET);
+		size -= off;
 	}
 
 	size_t ret;
 
-	while (true) {
+	while (!ctx->final) {
 		if (e->opts & CIPHER_FLAG_a) {
 			size_t res = stream_base64_dec(in, ctx->ciphertext, ctx->ciphertext_len);
-			if (res != 0 && res != 8)
-				throwe("bad decrypt", false);
+			if (res != 0 && res != 8) {
+				char buf[128];
+				snprintf(buf, sizeof buf, "bad decrypt, ret = %zu", ret);
+				throwe(buf, false);
+			}
 			if (res == 0)
 				break;
 		} else {
-			ret = fread(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->ciphertext_len, in);
-			if (ret != 0 && ret != 8)
-				throwe("bad decrypt", false);
+			ret = fread(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->algo.blk_size, in);
+			if (ret == 0) {
+				break;
+			}
+			if (ctx->algo.need_padding && ret != ctx->algo.blk_size) {
+				char buf[128];
+				snprintf(buf, sizeof buf, "bad decrypt, ret = %zu", ret);
+				throwe(buf, false);
+			} else if (!ctx->algo.need_padding) {
+				ctx->ciphertext_len = ret;
+			}
+			cur += ret;
+			if (cur >= size)
+				ctx->final = true;
 		}
 
 		block_decipher(ctx);
 
-		fwrite(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, out);
+		if (ctx->plaintext) {
+			fwrite(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, out);
+			break;
+		}
 	}
 
 	if (e->in_file)

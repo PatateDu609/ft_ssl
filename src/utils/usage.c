@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #if __has_include(<stdio_ext.h>)
 #include <stdio_ext.h>
@@ -45,13 +46,13 @@ static void ft_print(const struct s_option *options, size_t opts_len, enum e_opt
 			size_t len = longest - strlen(options[i].name) - 1;
 			fprintf(stderr,
 			        "%s-%s%s  %s%-*s%s",
-			        COLOR_RED COLOR_BOLD,
+			        isatty(2) ? COLOR_RED COLOR_BOLD: "",
 			        options[i].name,
-			        COLOR_RESET,
-			        COLOR_BLUE,
+			        isatty(2) ? COLOR_RESET : "",
+			        isatty(2) ? COLOR_BLUE : "",
 			        (int) len,
 			        options[i].val_desc,
-			        COLOR_RESET);
+			        isatty(2) ? COLOR_RESET : "");
 		} else
 			fprintf(stderr, "%s-%-*s%s", COLOR_RED COLOR_BOLD, (int) longest + 1, options[i].name, COLOR_RESET);
 

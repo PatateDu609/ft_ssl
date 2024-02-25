@@ -51,18 +51,22 @@ uint8_t *ft_str_to_hex(char *str, size_t target_len) {
 }
 
 static uint8_t *ft_init_salt(struct s_env *e, struct salted_cipher_ctx *salted_ctx, const char *ukey) {
+	if (ukey)
+	{
+		salted_ctx->salt_len = 0;
+		return NULL;
+	}
+
 	if (e->opts & CIPHER_FLAG_salt) {
 		char *usalt = get_opt_value(e, CIPHER_FLAG_salt);// User salt is ignored if decrypt mode
 
 		if (usalt)
 			return ft_str_to_hex(usalt, salted_ctx->salt_len);
-		if (ukey)
-			return NULL;
 	}
 
 	if (e->opts & CIPHER_FLAG_d) {
 		char *infile = e->in_file;
-		FILE *in     = infile ? fopen(infile, "r") : stdin;
+		FILE *in     = infile ? fopen(infile, "rb") : stdin;
 		if (in == NULL)
 			throwe(infile, true);
 

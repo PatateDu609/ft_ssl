@@ -7,11 +7,11 @@
 #include <stdio.h>
 
 static int ft_base64_encode(struct s_env *e) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "rb") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	FILE *out = e->out_file ? fopen(e->out_file, "wb") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
@@ -38,11 +38,11 @@ static int ft_base64_encode(struct s_env *e) {
 }
 
 static int ft_base64_decode(struct s_env *e) {
-	FILE *in = e->in_file ? fopen(e->in_file, "r") : stdin;
+	FILE *in = e->in_file ? fopen(e->in_file, "rb") : stdin;
 	if (!in)
 		throwe(e->in_file, true);
 
-	FILE *out = e->out_file ? fopen(e->out_file, "w") : stdout;
+	FILE *out = e->out_file ? fopen(e->out_file, "wb") : stdout;
 	if (!out) {
 		fclose(in);
 		throwe(e->out_file, true);
