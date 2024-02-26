@@ -1,5 +1,6 @@
 import itertools
 import os
+import pprint
 import re
 import secrets
 import shutil
@@ -8,6 +9,10 @@ import subprocess
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import TypedDict
+
+import tabulate
+
+pp = pprint.PrettyPrinter(indent=4)
 
 
 def parse_algo(algo: str) -> tuple[str, str] | None:
@@ -62,6 +67,16 @@ class TestCategory:
     def __hash__(self):
         return hash((self.use_pbkdf2, self.encrypt_mode, self.base64))
 
+    def __str__(self) -> str:
+        return self.pretty_cat_name
+
+    def __repr__(self) -> str:
+        return (f"TestCategory({self.repr_cat_name}) -> {{ "
+                f"use_pbkdf2: {self.use_pbkdf2}, "
+                f"encrypt_mode: {self.encrypt_mode}, "
+                f"base64: {self.base64} "
+                f"}}")
+
 
 class TestStatsSummary(Enum):
     ENCRYPT = 0
@@ -101,7 +116,7 @@ class TestStatsSummary(Enum):
 
 
 class TestStats:
-    def __init__(self, categories: set[TestCategory], algos: set[str]):
+    def __init__(self, categories: list[TestCategory], algos: set[str]):
         self.__stats: dict[TestCategory, dict[str, tuple[int, int]]] = {}
         self.__summary: dict[TestStatsSummary, tuple[int, int] | dict[str, tuple[int, int]]] = {
             TestStatsSummary.ENCRYPT: (0, 0),
@@ -313,18 +328,6 @@ class CopyTestCase(TestCase):
         return f"CopyTestCase({self.__str__()})"
 
 
-class DecryptionTestCase(TestCase):
-    def __init__(self, file: str, src: str, ):
-        super().__init__('decryption', file)
-        pass
-
-    def create(self):
-        pass
-
-    def __repr__(self) -> str:
-        return f"DecryptionTestCase({self.__str__()})"
-
-
 class TestCaseStruct(TypedDict):
     name: str
     file: str
@@ -347,21 +350,13 @@ class Tester:
         self.mine = mine
         self.sys = sys
 
-        if encrypt_mode:
-            self.test = test
-            self.out_mine = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.enc.{mine}.ft_ssl")
-            self.out_sys = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.enc.{mine}.openssl")
-            self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.enc.{mine}")
-        else:
-            self.test: TestCaseStruct = {
-                "file": os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.enc.{mine}.openssl"),
-                "name": "",
-            }
-            self.test["name"] = os.path.basename(self.test["file"])
+        b64_part = ".base64" if base64 else ""
+        mode_part = "enc" if encrypt_mode else "dec"
 
-            self.out_mine = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.enc.{mine}.ft_ssl")
-            self.out_sys = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.enc.{mine}.openssl")
-            self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.enc.{mine}")
+        self.test = test
+        self.out_mine = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.ft_ssl")
+        self.out_sys = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.openssl")
+        self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}")
 
         self.use_pbkdf2 = use_pbkdf2
         self.encrypt_mode = encrypt_mode
@@ -421,7 +416,7 @@ class Tester:
 
         return Tester.__ALGO_KEY_LEN[alg], blk_len, need_iv
 
-    def __construct_ft_ssl_command(self) -> list[str]:
+    def __construct_ft_ssl_command(self, infile: str | None = None) -> list[str]:
         cmd = ["./ft_ssl", self.mine]
 
         if self.encrypt_mode:
@@ -433,7 +428,7 @@ class Tester:
             cmd.append("-a")
 
         cmd.append("-i")
-        cmd.append(self.test["file"])
+        cmd.append(infile if infile is not None else self.test["file"])
         cmd.append("-o")
         cmd.append(self.out_mine)
 
@@ -452,10 +447,11 @@ class Tester:
 
         return cmd
 
-    def __construct_openssl_command(self) -> list[str]:
+    def __construct_openssl_command(self, infile: str | None = None, outfile: str | None = None,
+                                    force_enc: bool = False) -> list[str]:
         cmd = ["openssl", "enc", self.sys]
 
-        if self.encrypt_mode:
+        if self.encrypt_mode or force_enc:
             cmd.append("-e")
         else:
             cmd.append("-d")
@@ -464,9 +460,9 @@ class Tester:
             cmd.append("-a")
 
         cmd.append("-in")
-        cmd.append(self.test["file"])
+        cmd.append(infile if infile is not None else self.test["file"])
         cmd.append("-out")
-        cmd.append(self.out_sys)
+        cmd.append(outfile if outfile is not None else self.out_sys)
 
         if self.password:
             cmd.append("-k")
@@ -494,24 +490,55 @@ class Tester:
         return cmd
 
     def run(self) -> bool:
-        mine = self.__construct_ft_ssl_command()
-        sys = self.__construct_openssl_command()
+        if self.encrypt_mode:
+            mine = self.__construct_ft_ssl_command()
+            sys = self.__construct_openssl_command()
+        else:
+            b64_part = ".base64" if self.base64 else ""
+            dec_input = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.dec_input{b64_part}")
+            setup_input_cmd = self.__construct_openssl_command(outfile=dec_input, force_enc=True)
+
+            completed_process_setup_input = subprocess.run(
+                setup_input_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            if completed_process_setup_input.returncode != 0:
+                from sys import stderr
+                print(f"stdout = {completed_process_setup_input.stdout!r}", file=stderr)
+                print(f"stderr = {completed_process_setup_input.stderr!r}", file=stderr)
+                return False
+
+            mine = self.__construct_ft_ssl_command(infile=dec_input)
+            sys = self.__construct_openssl_command(infile=dec_input)
 
         ret = True
 
-        completed_process_mine = subprocess.run(mine, universal_newlines=True)
-        completed_process_sys = subprocess.run(sys, universal_newlines=True)
+        completed_process_mine = subprocess.run(
+            mine,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+        completed_process_sys = subprocess.run(
+            sys,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
 
         if completed_process_mine.returncode != 0:
             from sys import stderr
-            print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
-            print(f"stderr = {completed_process_mine.stderr!r}", file=stderr)
+            if len(completed_process_mine.stdout) != 0:
+                print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
+            if len(completed_process_mine.stderr) != 0:
+                print(f"stderr = {completed_process_mine.stderr!r}", file=stderr)
             ret = False
 
         if completed_process_sys.returncode != 0:
             from sys import stderr
-            print(f"stdout = {completed_process_sys.stdout!r}", file=stderr)
-            print(f"stderr = {completed_process_sys.stderr!r}", file=stderr)
+            if len(completed_process_sys.stdout) != 0:
+                print(f"stdout = {completed_process_sys.stdout!r}", file=stderr)
+            if len(completed_process_sys.stderr) != 0:
+                print(f"stderr = {completed_process_sys.stderr!r}", file=stderr)
             ret = False
 
         if not ret:
@@ -539,8 +566,6 @@ class Tester:
             _, cmp_stderr = cmp_proc.communicate()
 
             if gawk_ret != 0:
-                ret = False
-            if not ret:
                 print(f"bad return from gawk({gawk_ret}) commands")
                 exit(1)
 
@@ -548,14 +573,21 @@ class Tester:
             if file_stat.st_size == 0:
                 ret = True
             else:
-                f.seek(0)
+                ret = False
+                f.seek(0, 0)
+
+                content = f.read()
+
+                f.seek(0, 0)
                 print(f"# diff cmd: {" ".join(gen_diff)}", file=f, end="\n")
                 print(f"# OpenSSL command: {" ".join(sys)}", file=f, end="\n")
                 print(f"# ft_ssl command: {" ".join(mine)}", file=f, end="\n")
 
+                f.write(content)
+
                 if len(cmp_stderr) > 0:
                     f.seek(0, 2)
-                    f.write(cmp_stderr)
+                    f.write(cmp_stderr.decode(encoding="utf-8"))
 
         if ret:
             os.unlink(self.diff)
@@ -614,8 +646,8 @@ def match_algorithms(mine: list[str], sys: list[str]) -> dict[str, str]:
 
         table.append([alg, f"{Colors.GREEN}found{Colors.CLEAR}" if found else f"{Colors.RED}not found{Colors.CLEAR}"])
 
-    from tabulate import tabulate
-    print(tabulate(table))
+    print(tabulate.tabulate(table, tablefmt='plain'))
+    print()
     print(f"found {len(res)}/{len(mine)}, not associated from sys {len(sys) - len(mine)}/{len(sys)}")
     return res
 
@@ -657,6 +689,10 @@ def create_test_structure() -> list[TestCaseStruct]:
         DDTestCase(os.path.join(inputs_folder, "medium_binary1"), "/dev/random", "1k", 1),
         DDTestCase(os.path.join(inputs_folder, "medium_binary2"), "/dev/random", "1k", 2),
         DDTestCase(os.path.join(inputs_folder, "medium_binary3"), "/dev/random", "1k", 5),
+
+        CopyTestCase(os.path.join(inputs_folder, "Makefile"), os.path.abspath("Makefile")),
+        CopyTestCase(os.path.join(inputs_folder, ".clang-format"), os.path.abspath(".clang-format")),
+        CopyTestCase(os.path.join(inputs_folder, "commands.h"), os.path.abspath(os.path.join("include", "commands.h"))),
     ]
 
     print()
@@ -681,16 +717,16 @@ def main():
     sys = get_sys_algorithms()
     matched_alg = match_algorithms(mine, sys)
 
-    categories: set[TestCategory] = set()
+    categories: list[TestCategory] = []
 
     for (use_pbkdf2, encrypt_mode, base64) in list(itertools.product([True, False], repeat=3)):
-        categories.add(TestCategory(use_pbkdf2, encrypt_mode, base64))
+        categories.append(TestCategory(use_pbkdf2, encrypt_mode, base64))
 
     stats = TestStats(categories=categories, algos=set(mine))
     print("-" * 64)
 
     for cat in categories:
-        if cat.encrypt_mode or cat.base64 or cat.use_pbkdf2:
+        if cat.encrypt_mode:
             continue
         for alg in matched_alg.items():
             mine, sys = alg
