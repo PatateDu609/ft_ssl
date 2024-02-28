@@ -6,6 +6,11 @@
 #include <ctype.h>
 #include <string.h>
 
+#if !(_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE >= 500)
+#include <libft.h>
+#define strdup ft_strdup
+#endif
+
 static void print_hex(FILE *out, uint8_t *data, size_t s) {
 	if (data) {
 		for (size_t i = 0; i < s; i++)
