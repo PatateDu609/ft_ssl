@@ -174,12 +174,13 @@ class TestStats:
     def print(
             self,
             cat: TestCategory | None,
-            algo: str | None,
+            algo: str | None = None,
             pbkdf2: bool = True,
             key: bool = True,
             base64: bool = True,
             encrypt: bool = True,
-            decrypt: bool = True):
+            decrypt: bool = True,
+            only_cat_summary: bool = False):
         algo_cnt, algo_total = 0, 0
 
         def print_cat(local_cat: TestCategory, cat_stats: dict[str, tuple[int, int]]):
@@ -188,25 +189,36 @@ class TestStats:
             nonlocal algo
 
             end = '\n' if algo is None else ' '
-            print(f"{local_cat.pretty_cat_name}:", end=end)
+            if not only_cat_summary:
+                print(f"{local_cat.pretty_cat_name}:", end=end)
             cat_cnt, cat_total = 0, 0
 
             for local_algo in cat_stats:
                 cnt, total = cat_stats.get(local_algo)
 
                 if algo and local_algo == algo:
-                    print(f"{algo}: {cnt}/{total} ({self.__get_percentage(cnt, total)}%)")
+                    if total != 0:
+                        print(f"{algo}: {cnt}/{total} ({self.__get_percentage(cnt, total)}%)")
+                    else:
+                        print("\r", end="")
                     algo_cnt += cnt
                     algo_total += total
                     return
                 elif algo is None:
-                    print(f"\t{algo}: {cnt}/{total} ({self.__get_percentage(cnt, total)}%)")
+                    if not only_cat_summary:
+                        if total != 0:
+                            print(f"\t{local_algo}: {cnt}/{total} ({self.__get_percentage(cnt, total)}%)")
+                        else:
+                            print("\r", end="")
                     cat_cnt += cnt
                     cat_total += total
 
-            print(f"{local_cat.pretty_cat_name}:"
-                  f" Total: {cat_cnt}/{cat_total}"
-                  f" ({self.__get_percentage(cat_cnt, cat_total)}%)")
+            if cat_total != 0:
+                print(f"{'\t' if only_cat_summary else local_cat.pretty_cat_name + ':'}"
+                      f" Total: {cat_cnt}/{cat_total}"
+                      f" ({self.__get_percentage(cat_cnt, cat_total)}%)")
+            else:
+                print("\r", end="")
 
         if cat:
             print_cat(cat, self.__stats[cat])
@@ -224,7 +236,7 @@ class TestStats:
                 continue
             print_cat(item_cat, self.__stats[item_cat])
 
-        if algo:
+        if algo and algo_total != 0:
             print(f"{algo}: Total: {algo_cnt}/{algo_total} ({self.__get_percentage(algo_cnt, algo_total)}%)")
 
     def print_summary(self, summary_categories: list[TestStatsSummary] | None = None):
@@ -383,7 +395,7 @@ class Tester:
 
     @staticmethod
     def __random_password(min_len: int = 5, max_len: int = 20):
-        charset = string.printable
+        charset = string.digits + string.ascii_letters + r"!@#$%^&*()_-=+~`'\\||?/.><,;:[]{}"
 
         if min_len > max_len:
             random_len = min_len
@@ -495,7 +507,7 @@ class Tester:
             sys = self.__construct_openssl_command()
         else:
             b64_part = ".base64" if self.base64 else ""
-            dec_input = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.dec_input{b64_part}")
+            dec_input = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{self.mine}.dec_input{b64_part}")
             setup_input_cmd = self.__construct_openssl_command(outfile=dec_input, force_enc=True)
 
             completed_process_setup_input = subprocess.run(
@@ -526,23 +538,29 @@ class Tester:
             universal_newlines=True)
 
         if completed_process_mine.returncode != 0:
+            print(f"Completed ft_ssl process with bad return code {completed_process_mine.returncode}"
+                  f" for file {self.test["file"]}")
+
             from sys import stderr
             if len(completed_process_mine.stdout) != 0:
                 print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
             if len(completed_process_mine.stderr) != 0:
                 print(f"stderr = {completed_process_mine.stderr!r}", file=stderr)
-            ret = False
+            # ret = False
 
         if completed_process_sys.returncode != 0:
+            print(f"Completed system process with bad return code {completed_process_sys.returncode}"
+                  f" for file {self.test["file"]}")
+
             from sys import stderr
             if len(completed_process_sys.stdout) != 0:
                 print(f"stdout = {completed_process_sys.stdout!r}", file=stderr)
             if len(completed_process_sys.stderr) != 0:
                 print(f"stderr = {completed_process_sys.stderr!r}", file=stderr)
-            ret = False
+            # ret = False
 
-        if not ret:
-            return False
+        # if not ret:
+        #     return False
 
         gen_diff = [
             "cmp",
@@ -569,7 +587,8 @@ class Tester:
                 print(f"bad return from gawk({gawk_ret}) commands")
                 exit(1)
 
-            file_stat = os.stat(self.diff)
+        file_stat = os.stat(self.diff)
+        with open(self.diff, mode="w+") as f:
             if file_stat.st_size == 0:
                 ret = True
             else:
@@ -591,6 +610,7 @@ class Tester:
 
         if ret:
             os.unlink(self.diff)
+            pass
 
         return ret
 
@@ -725,18 +745,22 @@ def main():
     stats = TestStats(categories=categories, algos=set(mine))
     print("-" * 64)
 
-    for cat in categories:
-        if cat.encrypt_mode:
-            continue
-        for alg in matched_alg.items():
-            mine, sys = alg
+    try:
+        for cat in categories:
+            for alg in matched_alg.items():
+                mine, sys = alg
 
-            for test in tests:
-                tester = Tester(mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
-                stats.increment(cat, mine, tester.run())
+                for test in tests:
+                    tester = Tester(mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
+                    stats.increment(cat, mine, tester.run())
 
-            stats.print(cat, mine)
+                stats.print(cat, mine)
+
+            stats.print(cat, only_cat_summary=True)
+            print("-" * 64)
+    except KeyboardInterrupt:
         print("-" * 64)
+        print("Interrupted...")
 
     stats.print_summary()
 

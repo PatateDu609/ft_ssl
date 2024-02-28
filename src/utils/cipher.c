@@ -106,14 +106,20 @@ static void ft_cipher_dec(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 
 	while (!ctx->final) {
 		if (e->opts & CIPHER_FLAG_a) {
-			size_t res = stream_base64_dec(in, ctx->ciphertext, ctx->ciphertext_len);
-			if (res != 0 && res != 8) {
+			ret = stream_base64_dec(in, ctx->ciphertext, ctx->ciphertext_len);
+			if (ret == 0)
+				break;
+			if (ctx->algo.need_padding && ret != ctx->algo.blk_size) {
 				char buf[128];
 				snprintf(buf, sizeof buf, "bad decrypt, ret = %zu", ret);
 				throwe(buf, false);
+			} else if (!ctx->algo.need_padding) {
+				ctx->ciphertext_len = ret;
 			}
-			if (res == 0)
-				break;
+
+			if (stream_base64_dec_eof()) {
+				ctx->final = true;
+			}
 		} else {
 			ret = fread(ctx->ciphertext, sizeof *ctx->ciphertext, ctx->algo.blk_size, in);
 			if (ret == 0) {
@@ -135,7 +141,6 @@ static void ft_cipher_dec(struct s_env *e, struct salted_cipher_ctx *salted_ctx,
 
 		if (ctx->plaintext) {
 			fwrite(ctx->plaintext, sizeof *ctx->plaintext, ctx->plaintext_len, out);
-			break;
 		}
 	}
 
