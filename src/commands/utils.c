@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "commands.h"
 #include "error.h"
 #include "ft_ssl.h"
@@ -9,20 +10,43 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+int vstrcmp(const void *a, const void *b) {
+	const char *A    = *(const char **) a;
+	const char *B    = *(const char **) b;
+
+	size_t      lenA = strlen(A);
+	size_t      lenB = strlen(B);
+	size_t      len  = lenA < lenB ? lenA : lenB;
+
+	return strncmp(A, B, len);
+}
+
 char **get_cmd_names(enum e_command_type type) {
-	size_t i;
+	size_t i, cnt;
 	size_t j;
 	char **names;
 
-	names = calloc(NB_COMMANDS + 1, sizeof(char *));
+	cnt = 0;
+	for (i = 0; i < NB_COMMANDS; i++) {
+		if (commands[i].type != type)
+			continue;
+
+		cnt += 1 + (commands[i].alias ? 1 : 0);
+	}
+
+	names = calloc(cnt + 1, sizeof(char *));
 	if (!names)
 		throwe("Failed to allocate memory for command names", true);
 
 	for (i = 0, j = 0; i < NB_COMMANDS; i++) {
-		if (commands[i].type == type) {
-			names[j++] = commands[i].name;
-		}
+		if (commands[i].type != type)
+			continue;
+		names[j++] = commands[i].name;
+		if (commands[i].alias)
+			names[j++] = commands[i].alias;
 	}
+
+	ft_qsort(names, cnt, sizeof *names, vstrcmp);
 	return names;
 }
 
@@ -33,7 +57,11 @@ size_t get_longest_name(void) {
 		return longest_name;
 
 	for (size_t i = 0; i < NB_COMMANDS; i++)
+	{
 		longest_name = MAX(longest_name, strlen(commands[i].name));
+		if (commands[i].alias)
+			longest_name = MAX(longest_name, strlen(commands[i].alias));
+	}
 
 	return longest_name;
 }

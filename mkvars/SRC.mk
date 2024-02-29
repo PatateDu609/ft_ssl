@@ -22,6 +22,7 @@ BASENAME				?=	main							\
 							utils/usage						\
 							utils/process					\
 							utils/init_cipher				\
+							utils/helpers					\
 							\
 							commands/commands				\
 							commands/exec					\

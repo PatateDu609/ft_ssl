@@ -24,7 +24,7 @@ void                             free_blocks(struct s_blocks **blks);
 
 void                             ft_process_hash(struct s_env *e,
                                                  char         *alg_pretty_name,
-                                                 char *(*hash_str)(const char *),
+                                                 char         *(*hash_str)(const char *),
                                                  char *(hash_filename) (const char *),
                                                  char *(hash_descriptor) (int) );
 
@@ -39,8 +39,18 @@ struct salted_cipher_ctx {
 struct salted_cipher_ctx *ft_init_cipher(struct s_env *e, struct cipher_ctx *ctx);
 struct cipher_ctx        *ft_init_cipher_ctx(bool is_enc, enum block_cipher cipher_type);
 
-void debug_print(FILE *out, struct salted_cipher_ctx *ctx);
+void                      debug_print(FILE *out, struct salted_cipher_ctx *ctx);
 
 int                       ft_cipher(struct s_env *e, enum block_cipher algo);
+
+/**
+ * Applies a quicksort on the given array.
+ *
+ * @param data The targeted array
+ * @param nb_el Number of elements in the array
+ * @param width Size of one element of the array
+ * @param comp Compares two elements from the array
+ */
+void                      ft_qsort(void *data, size_t nb_el, size_t width, int (*comp)(const void *, const void *));
 
 #endif
