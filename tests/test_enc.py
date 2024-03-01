@@ -365,19 +365,24 @@ class Tester:
         "des-ede3": 24,
     }
 
-    def __init__(self, args: argparse.Namespace, mine: str, sys: str, test: TestCaseStruct, use_pbkdf2: bool, encrypt_mode: bool, base64: bool):
+    def __init__(self, args: argparse.Namespace, mine: str, sys: str, test: TestCaseStruct, use_pbkdf2: bool,
+                 encrypt_mode: bool, base64: bool):
         self.mine = mine
         self.sys = sys
-        self.valgrind = args.valgrind
+        self.use_valgrind = args.valgrind
 
         b64_part = ".base64" if base64 else ""
         mode_part = "enc" if encrypt_mode else "dec"
+        key_part = "pbkdf2" if use_pbkdf2 else "key"
 
         self.test = test
-        self.out_mine = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.ft_ssl")
-        self.out_sys = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.openssl")
-        self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}")
-        self.valgrind = os.path.join(Tester.VALGRIND_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.txt")
+        self.out_mine = os.path.join(Tester.OUTPUT_FOLDER,
+                                     f"{self.test["name"]}.{mode_part}.{key_part}.{mine}{b64_part}.ft_ssl")
+        self.out_sys = os.path.join(Tester.OUTPUT_FOLDER,
+                                    f"{self.test["name"]}.{mode_part}.{key_part}.{mine}{b64_part}.openssl")
+        self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.{mode_part}.{key_part}.{mine}{b64_part}")
+        self.valgrind = os.path.join(Tester.VALGRIND_FOLDER,
+                                     f"{self.test["name"]}.{mode_part}.{key_part}.{mine}{b64_part}.txt")
 
         self.use_pbkdf2 = use_pbkdf2
         self.encrypt_mode = encrypt_mode
@@ -439,7 +444,7 @@ class Tester:
     def __construct_ft_ssl_command(self, infile: str | None = None) -> list[str]:
         cmd = []
 
-        if self.valgrind:
+        if self.use_valgrind:
             cmd.extend(["valgrind", "--leak-check=full", "--show-leak-kinds=all", "-s"])
         cmd.extend(["./ft_ssl", self.mine])
 
@@ -518,7 +523,9 @@ class Tester:
             sys = self.__construct_openssl_command()
         else:
             b64_part = ".base64" if self.base64 else ""
-            dec_input = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{self.mine}.dec_input{b64_part}")
+            key_part = "pbkdf" if self.use_pbkdf2 else "key"
+            dec_input = os.path.join(Tester.OUTPUT_FOLDER,
+                                     f"{self.test["name"]}.{self.mine}.{key_part}.dec_input{b64_part}")
             setup_input_cmd = self.__construct_openssl_command(outfile=dec_input, force_enc=True)
 
             completed_process_setup_input = subprocess.run(
@@ -554,11 +561,18 @@ class Tester:
                 print(f"stderr = {completed_process_sys.stderr!r}", file=stderr)
             exit(1)
 
-        with open(self.valgrind, 'w+') as f:
+        if self.use_valgrind:
+            with open(self.valgrind, 'w+') as f:
+                completed_process_mine = subprocess.run(
+                    mine,
+                    stdout=subprocess.PIPE,
+                    stderr=f,
+                    universal_newlines=True)
+        else:
             completed_process_mine = subprocess.run(
                 mine,
                 stdout=subprocess.PIPE,
-                stderr=f,
+                stderr=subprocess.PIPE,
                 universal_newlines=True)
 
         if completed_process_mine.returncode != 0:
@@ -568,6 +582,8 @@ class Tester:
             from sys import stderr
             if len(completed_process_mine.stdout) != 0:
                 print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
+            if not self.use_valgrind and len(completed_process_mine.stderr) != 0:
+                print(f"stderr = {completed_process_mine.stderr!r}", file=stderr)
             # ret = False
 
         # if not ret:
@@ -599,11 +615,8 @@ class Tester:
                 exit(1)
 
         file_stat = os.stat(self.diff)
-        with open(self.diff, mode="w+") as f:
-            if file_stat.st_size == 0:
-                ret = True
-            else:
-                ret = False
+        if file_stat.st_size != 0:
+            with open(self.diff, mode="r+") as f:
                 f.seek(0, 0)
 
                 content = f.read()
@@ -619,10 +632,11 @@ class Tester:
                     f.seek(0, 2)
                     f.write(cmp_stderr.decode(encoding="utf-8"))
 
-        if ret:
+            return False
+        else:
             os.unlink(self.diff)
 
-        return ret
+        return True
 
 
 def get_my_algorithms() -> list[str]:
@@ -758,9 +772,11 @@ def main(args: argparse.Namespace):
     stats = TestStats(categories=categories, algos=set(mine))
     print("-" * 64)
 
+    algs = [('des-ede', '-des-ede'), ('des-ede-cbc', '-des-ede-cbc')]
     try:
         for cat in categories:
-            for alg in matched_alg.items():
+            # for alg in matched_alg.items():
+            for alg in algs:
                 mine, sys = alg
 
                 for test in tests:

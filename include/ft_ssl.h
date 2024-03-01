@@ -17,12 +17,14 @@ int ft_sha512_256(struct s_env *env);
 
 int ft_base64(struct s_env *env);
 
+int ft_3des_ede3_ecb(struct s_env *e);
 int ft_3des_ede3_cbc(struct s_env *e);
 int ft_3des_ede3_cfb(struct s_env *e);
 int ft_3des_ede3_cfb1(struct s_env *e);
 int ft_3des_ede3_cfb8(struct s_env *e);
 int ft_3des_ede3_ofb(struct s_env *e);
 
+int ft_3des_ede_ecb(struct s_env *e);
 int ft_3des_ede_cbc(struct s_env *e);
 int ft_3des_ede_cfb(struct s_env *e);
 int ft_3des_ede_ofb(struct s_env *e);

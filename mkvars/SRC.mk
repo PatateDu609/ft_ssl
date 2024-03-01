@@ -44,10 +44,12 @@ BASENAME				?=	main							\
 							\
 							cipher/3des_ede3/cbc			\
 							cipher/3des_ede3/cfb			\
+							cipher/3des_ede3/ecb			\
 							cipher/3des_ede3/ofb			\
 							\
 							cipher/3des_ede2/cbc			\
 							cipher/3des_ede2/cfb			\
+							cipher/3des_ede2/ecb			\
 							cipher/3des_ede2/ofb			\
 
 SRC						:=	$(addprefix $(PATH_SRC)/,\

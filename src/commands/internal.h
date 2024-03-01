@@ -3,11 +3,11 @@
 
 #include "structs.h"
 
-#define NB_COMMANDS 44
+#define NB_COMMANDS 46
 
 extern const struct s_command commands[NB_COMMANDS];
 
-bool check_path_readable(char *val);
-bool check_path_writable(char *val);
+bool                          check_path_readable(char *val);
+bool                          check_path_writable(char *val);
 
-#endif //FT_SSL_INTERNAL_H
+#endif//FT_SSL_INTERNAL_H

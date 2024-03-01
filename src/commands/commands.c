@@ -531,9 +531,18 @@ const struct s_command commands[NB_COMMANDS] = {
 	 },
 
 	{
+     .name       = "des-ede-ecb",
+     .alias      = "des-ede",
+     .cmd        = ft_3des_ede_ecb,
+     .type       = CIPHER,
+     .param_cnt  = 0,
+     .params     = NULL,
+     .opts_count = sizeof cipher_options / sizeof(struct s_option),
+     .options    = cipher_options,
+	 },
+	{
      .name       = "des-ede-cbc",
      .cmd        = ft_3des_ede_cbc,
-     .alias      = "des-ede",
      .type       = CIPHER,
      .param_cnt  = 0,
      .params     = NULL,
@@ -561,9 +570,18 @@ const struct s_command commands[NB_COMMANDS] = {
 	 },
 
 	{
+     .name       = "des-ede3-ecb",
+     .cmd        = ft_3des_ede3_ecb,
+     .alias      = "des-ede3",
+     .type       = CIPHER,
+     .param_cnt  = 0,
+     .params     = NULL,
+     .opts_count = sizeof cipher_options / sizeof(struct s_option),
+     .options    = cipher_options,
+	 },
+	{
      .name       = "des-ede3-cbc",
      .cmd        = ft_3des_ede3_cbc,
-     .alias      = "des-ede3",
      .type       = CIPHER,
      .param_cnt  = 0,
      .params     = NULL,
