@@ -8,6 +8,7 @@ import shutil
 import string
 import subprocess
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, Future, wait, ALL_COMPLETED
 from enum import Enum
 from typing import TypedDict
 
@@ -757,6 +758,10 @@ def create_test_structure() -> list[TestCaseStruct]:
     return tests
 
 
+def run_test(tester: Tester) -> bool:
+    return tester.run()
+
+
 def main(args: argparse.Namespace):
     tests = create_test_structure()
 
@@ -777,9 +782,18 @@ def main(args: argparse.Namespace):
             for alg in matched_alg.items():
                 mine, sys = alg
 
-                for test in tests:
-                    tester = Tester(args, mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
-                    stats.increment(cat, mine, tester.run())
+                with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+                    futures: list[Future[bool]] = []
+
+                    for test in tests:
+                        tester = Tester(args, mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
+                        futures.append(executor.submit(run_test, tester))
+
+                    wait(futures, return_when=ALL_COMPLETED)
+
+                    for fut in futures[:]:
+                        stats.increment(cat, mine, fut.result())
+                        futures.remove(fut)
 
                 stats.print(cat, mine)
 
