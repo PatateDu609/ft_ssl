@@ -772,11 +772,9 @@ def main(args: argparse.Namespace):
     stats = TestStats(categories=categories, algos=set(mine))
     print("-" * 64)
 
-    algs = [('des-ede', '-des-ede'), ('des-ede-cbc', '-des-ede-cbc')]
     try:
         for cat in categories:
-            # for alg in matched_alg.items():
-            for alg in algs:
+            for alg in matched_alg.items():
                 mine, sys = alg
 
                 for test in tests:
