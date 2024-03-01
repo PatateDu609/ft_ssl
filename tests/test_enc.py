@@ -782,7 +782,7 @@ def main(args: argparse.Namespace):
             for alg in matched_alg.items():
                 mine, sys = alg
 
-                with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+                with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
                     futures: list[Future[bool]] = []
 
                     for test in tests:
