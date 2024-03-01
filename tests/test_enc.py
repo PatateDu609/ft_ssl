@@ -1,3 +1,4 @@
+import argparse
 import itertools
 import os
 import pprint
@@ -15,11 +16,11 @@ import tabulate
 pp = pprint.PrettyPrinter(indent=4)
 
 
-def parse_algo(algo: str) -> tuple[str, str] | None:
+def parse_algo(algo: str) -> tuple[str | None, str | None]:
     exp = re.compile("(.+)-(ecb|cfb[18]?|cbc|ofb|ctr)")
     res = exp.match(algo)
     if res is None:
-        return None
+        return algo, None
     alg, cipher_mode = res.groups()
     return alg, cipher_mode
 
@@ -155,15 +156,17 @@ class TestStats:
                 summary_algos = self.__summary[TestStatsSummary.ALGO]
                 summary_cipher_modes = self.__summary[TestStatsSummary.CIPHER_MODE]
 
-                cnt, total = summary_algos.get(alg, (0, 0))
-                if success:
-                    cnt += 1
-                summary_algos[alg] = (cnt, total + 1)
+                if alg is not None:
+                    cnt, total = summary_algos.get(alg, (0, 0))
+                    if success:
+                        cnt += 1
+                    summary_algos[alg] = (cnt, total + 1)
 
-                cnt, total = summary_cipher_modes.get(cipher_mode, (0, 0))
-                if success:
-                    cnt += 1
-                summary_cipher_modes[cipher_mode] = (cnt, total + 1)
+                if cipher_mode is not None:
+                    cnt, total = summary_cipher_modes.get(cipher_mode, (0, 0))
+                    if success:
+                        cnt += 1
+                    summary_cipher_modes[cipher_mode] = (cnt, total + 1)
 
     @staticmethod
     def __get_percentage(count: int, total: int) -> str:
@@ -348,19 +351,24 @@ class TestCaseStruct(TypedDict):
 class Tester:
     OUTPUT_FOLDER = ""
     DIFF_FOLDER = ""
+    VALGRIND_FOLDER = ""
     __ALGO_KEY_LEN = {
         "aes-128": 16,
+        "aes128": 16,
         "aes-192": 24,
+        "aes192": 24,
         "aes-256": 32,
+        "aes256": 32,
 
         "des": 8,
         "des-ede": 16,
         "des-ede3": 24,
     }
 
-    def __init__(self, mine: str, sys: str, test: TestCaseStruct, use_pbkdf2: bool, encrypt_mode: bool, base64: bool):
+    def __init__(self, args: argparse.Namespace, mine: str, sys: str, test: TestCaseStruct, use_pbkdf2: bool, encrypt_mode: bool, base64: bool):
         self.mine = mine
         self.sys = sys
+        self.valgrind = args.valgrind
 
         b64_part = ".base64" if base64 else ""
         mode_part = "enc" if encrypt_mode else "dec"
@@ -369,6 +377,7 @@ class Tester:
         self.out_mine = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.ft_ssl")
         self.out_sys = os.path.join(Tester.OUTPUT_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.openssl")
         self.diff = os.path.join(Tester.DIFF_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}")
+        self.valgrind = os.path.join(Tester.VALGRIND_FOLDER, f"{self.test["name"]}.{mode_part}.{mine}{b64_part}.txt")
 
         self.use_pbkdf2 = use_pbkdf2
         self.encrypt_mode = encrypt_mode
@@ -409,15 +418,14 @@ class Tester:
         return secrets.token_hex(length)
 
     def __get_algo_lens(self) -> tuple[int, int, bool] | None:
-        parsed = parse_algo(self.mine)
-        if not parsed:
+        alg, cipher_mode = parse_algo(self.mine)
+        if alg is None:
             return None
-        alg, cipher_mode = parsed
 
         if alg not in Tester.__ALGO_KEY_LEN:
             return None
 
-        need_iv = cipher_mode != "ecb"
+        need_iv = cipher_mode is None or cipher_mode != "ecb"
 
         if "des" in alg:
             blk_len = 8
@@ -429,7 +437,11 @@ class Tester:
         return Tester.__ALGO_KEY_LEN[alg], blk_len, need_iv
 
     def __construct_ft_ssl_command(self, infile: str | None = None) -> list[str]:
-        cmd = ["./ft_ssl", self.mine]
+        cmd = []
+
+        if self.valgrind:
+            cmd.extend(["valgrind", "--leak-check=full", "--show-leak-kinds=all", "-s"])
+        cmd.extend(["./ft_ssl", self.mine])
 
         if self.encrypt_mode:
             cmd.append("-e")
@@ -492,8 +504,7 @@ class Tester:
             cmd.append("-iv")
             cmd.append(self.iv)
 
-        exp = re.compile(r"^-?des-(?!ede).*$")
-        if exp.match(self.sys):
+        if 'des' in self.sys and 'ede' not in self.sys:
             cmd.append("-provider")
             cmd.append("default")
             cmd.append("-provider")
@@ -526,27 +537,11 @@ class Tester:
 
         ret = True
 
-        completed_process_mine = subprocess.run(
-            mine,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True)
         completed_process_sys = subprocess.run(
             sys,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True)
-
-        if completed_process_mine.returncode != 0:
-            print(f"Completed ft_ssl process with bad return code {completed_process_mine.returncode}"
-                  f" for file {self.test["file"]}")
-
-            from sys import stderr
-            if len(completed_process_mine.stdout) != 0:
-                print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
-            if len(completed_process_mine.stderr) != 0:
-                print(f"stderr = {completed_process_mine.stderr!r}", file=stderr)
-            # ret = False
 
         if completed_process_sys.returncode != 0:
             print(f"Completed system process with bad return code {completed_process_sys.returncode}"
@@ -557,6 +552,22 @@ class Tester:
                 print(f"stdout = {completed_process_sys.stdout!r}", file=stderr)
             if len(completed_process_sys.stderr) != 0:
                 print(f"stderr = {completed_process_sys.stderr!r}", file=stderr)
+            exit(1)
+
+        with open(self.valgrind, 'w+') as f:
+            completed_process_mine = subprocess.run(
+                mine,
+                stdout=subprocess.PIPE,
+                stderr=f,
+                universal_newlines=True)
+
+        if completed_process_mine.returncode != 0:
+            print(f"Completed ft_ssl process with bad return code {completed_process_mine.returncode}"
+                  f" for file {self.test["file"]}")
+
+            from sys import stderr
+            if len(completed_process_mine.stdout) != 0:
+                print(f"stdout = {completed_process_mine.stdout!r}", file=stderr)
             # ret = False
 
         # if not ret:
@@ -610,7 +621,6 @@ class Tester:
 
         if ret:
             os.unlink(self.diff)
-            pass
 
         return ret
 
@@ -677,9 +687,11 @@ def create_test_structure() -> list[TestCaseStruct]:
     inputs_folder = os.path.join(tmp_folder, "inputs")
     outputs_folder = os.path.join(tmp_folder, "outputs")
     diffs_folder = os.path.join(tmp_folder, "diffs")
+    valgrind_folder = os.path.join(tmp_folder, "valgrind")
 
     Tester.OUTPUT_FOLDER = outputs_folder
     Tester.DIFF_FOLDER = diffs_folder
+    Tester.VALGRIND_FOLDER = valgrind_folder
 
     def mkdir(path: str):
         try:
@@ -692,6 +704,7 @@ def create_test_structure() -> list[TestCaseStruct]:
     mkdir(inputs_folder)
     mkdir(outputs_folder)
     mkdir(diffs_folder)
+    mkdir(valgrind_folder)
 
     test_commands = [
         EchoTestCase(os.path.join(inputs_folder, "empty"), ""),
@@ -730,7 +743,7 @@ def create_test_structure() -> list[TestCaseStruct]:
     return tests
 
 
-def main():
+def main(args: argparse.Namespace):
     tests = create_test_structure()
 
     mine = get_my_algorithms()
@@ -751,7 +764,7 @@ def main():
                 mine, sys = alg
 
                 for test in tests:
-                    tester = Tester(mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
+                    tester = Tester(args, mine, sys, test, cat.use_pbkdf2, cat.encrypt_mode, cat.base64)
                     stats.increment(cat, mine, tester.run())
 
                 stats.print(cat, mine)
@@ -766,4 +779,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        prog='test_enc.py',
+        description='Small tester for my encryption commands in ft_ssl',
+    )
+    parser.add_argument('-v', '--valgrind', action='store_true', default=False)
+
+    prog_args = parser.parse_args()
+    main(prog_args)
